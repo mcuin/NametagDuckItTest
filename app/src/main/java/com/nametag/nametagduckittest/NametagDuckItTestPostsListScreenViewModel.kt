@@ -10,6 +10,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
+/**
+ * View model for the posts list screen to handle data and actions.
+ * @param duckItPostsListRepository The repository to get get and send data to the api.
+ */
 @HiltViewModel
 class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val duckItPostsListRepository: NametagDuckItPostsListRepository) : ViewModel() {
 
@@ -23,6 +27,9 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
 
 }
 
+/**
+ * Sealed interface to represent the state of the posts list screen.
+ */
 sealed interface DuckItPostsUIState {
     data class Success(val posts: List<Post>) : DuckItPostsUIState
     object Error : DuckItPostsUIState

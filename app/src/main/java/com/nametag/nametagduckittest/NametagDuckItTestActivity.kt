@@ -14,6 +14,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.nametag.nametagduckittest.ui.theme.NametagDuckItTestTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Main activity for the app to hols the composable app.
+ */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

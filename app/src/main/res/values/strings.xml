@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">NametagDuckItTest</string>
+    <string name="upvote_description">Upvote post</string>
+    <string name="downvote_description">Downvote post</string>
+    <string name="post_image_description">Placeholder post description</string>
+    <string name="back_description">Go back a screen</string>
+    <string name="login_description">Login</string>
+    <string name="logout_description">Logout</string>
+    <string name="posts_screen_title">Duckit</string>
 </resources>
