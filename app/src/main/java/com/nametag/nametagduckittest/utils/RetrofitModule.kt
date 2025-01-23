@@ -26,7 +26,7 @@ object RetrofitModule {
         .baseUrl(baseUrl)
         .addConverterFactory(
             Json.asConverterFactory("application/json".toMediaType())
-        )
+        ).build()
 
     @Provides
     @Singleton

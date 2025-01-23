@@ -15,6 +15,8 @@ robolectric = "4.10"
 kotlin-serialization-plugin = "1.8.10"
 kotlin-serialization = "1.7.3"
 okhttp3 = "4.12.0"
+compose-navigation = "2.8.5"
+hilt-navigation-compose = "1.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +40,8 @@ hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-comp
 robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "robolectric" }
 kotlin-serialization = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlin-serialization" }
 okhttp3 = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp3" }
+compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version.ref = "compose-navigation" }
+hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt-navigation-compose" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

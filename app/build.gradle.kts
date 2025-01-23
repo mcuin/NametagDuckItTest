@@ -63,6 +63,8 @@ dependencies {
     ksp(libs.hilt.android.compiler)
     implementation(libs.kotlin.serialization)
     implementation(libs.okhttp3)
+    implementation(libs.compose.navigation)
+    implementation(libs.hilt.navigation.compose)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
