@@ -10,6 +10,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import javax.inject.Singleton
 
+/**
+ * Retrofit module for providing the Retrofit instance through dependency injection.
+ */
 @Module
 @InstallIn(SingletonComponent::class)
 object RetrofitModule {
