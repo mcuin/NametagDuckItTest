@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.hilt.navigation.compose)
     implementation(libs.coil)
     implementation(libs.coil.network)
+    implementation(libs.datastore)
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     androidTestImplementation(libs.androidx.junit)
