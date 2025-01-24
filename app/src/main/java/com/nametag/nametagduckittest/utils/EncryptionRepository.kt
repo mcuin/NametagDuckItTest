@@ -17,17 +17,21 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import java.security.KeyStore
 import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.IvParameterSpec
 import javax.inject.Inject
 
-class EncryptionRepository @Inject constructor(private val keystoreModule: KeystoreModule, private val dataStoreModule: DataStore<Preferences>) {
+class EncryptionRepository @Inject constructor(private val keyStore: KeyStore,
+                                               private val keyGenerator: KeyGenerator,
+                                               private val cipher: Cipher,
+                                               private val dataStoreModule: DataStore<Preferences>) {
 
     private fun generateSecretKey(keyAlias: String): SecretKey {
-        val keyEntry = keystoreModule.provideKeyStore().getEntry(keyAlias, null) as? KeyStore.SecretKeyEntry
+        val keyEntry = keyStore.getEntry(keyAlias, null) as? KeyStore.SecretKeyEntry
 
         return keyEntry?.secretKey ?: run {
-            keystoreModule.provideKeyGenerator().apply {
+            keyGenerator.apply {
                 init(
                     KeyGenParameterSpec
                         .Builder(keyAlias, PURPOSE_ENCRYPT or PURPOSE_DECRYPT)
@@ -41,10 +45,11 @@ class EncryptionRepository @Inject constructor(private val keystoreModule: Keyst
 
     suspend fun encryptData(data: String, keyAlias: String) {
         val secretKey = generateSecretKey(keyAlias)
-        val cipher = keystoreModule.provideCipher()
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
         val iv = cipher.iv
         val encryptedData = cipher.doFinal(data.toByteArray())
+        println(iv)
+        println(encryptedData)
         dataStoreModule.edit { preferences ->
             preferences[stringPreferencesKey("iv")] = iv.toString()
             preferences[stringPreferencesKey("encryptedData")] = encryptedData.toString()
@@ -62,7 +67,6 @@ class EncryptionRepository @Inject constructor(private val keystoreModule: Keyst
             val iv = preferences[stringPreferencesKey("iv")]?.toByteArray() ?: return@map null
             val encryptedData = preferences[stringPreferencesKey("encryptedData")]?.toByteArray() ?: return@map null
             val secretKey = generateSecretKey(keyAlias)
-            val cipher = keystoreModule.provideCipher()
             cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(iv))
             String(cipher.doFinal(encryptedData))
         }

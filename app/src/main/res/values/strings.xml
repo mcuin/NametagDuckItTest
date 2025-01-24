@@ -14,4 +14,12 @@
     <string name="clear_description">Clear current text entry</string>
     <string name="password_visible_description">Password is visible</string>
     <string name="password_hidden_description">Password is hidden</string>
+    <string name="invalid_login">Invalid email or password"</string>
+    <string name="account_not_found">Account with this email not found. Creating account.</string>
+    <string name="sign_in_success">Successfully logged in</string>
+    <string name="sign_up_success">Account successfully created</string>
+    <string name="unknown_error">An unknown error occurred. Please try again later.</string>
+    <string name="new_post_fab_description">Create new post</string>
+    <string name="login_required_upvote">Logging in is required to upvote posts</string>
+    <string name="login_required_downvote">Logging in is required to downvote posts</string>
 </resources>

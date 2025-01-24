@@ -2,6 +2,7 @@ package com.nametag.nametagduckittest
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.nametag.nametagduckittest.utils.DataStoreRepository
 import com.nametag.nametagduckittest.utils.NametagDuckItPostsListRepository
 import com.nametag.nametagduckittest.utils.Post
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +16,7 @@ import javax.inject.Inject
  * @param duckItPostsListRepository The repository to get get and send data to the api.
  */
 @HiltViewModel
-class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val duckItPostsListRepository: NametagDuckItPostsListRepository) : ViewModel() {
+class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val duckItPostsListRepository: NametagDuckItPostsListRepository, private val dataStoreRepository: DataStoreRepository) : ViewModel() {
 
     val states = duckItPostsListRepository.getPosts().map { response ->
         when (response.code()) {
@@ -29,6 +30,8 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
             DuckItPostsUIState.Success(posts.Posts)
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DuckItPostsUIState.Loading)
+
+    val isLoggedIn = dataStoreRepository.isLoggedInFlow().stateIn(viewModelScope, SharingStarted.Eagerly, false)
 
 }
 

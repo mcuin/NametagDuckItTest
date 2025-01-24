@@ -1,6 +1,8 @@
 package com.nametag.nametagduckittest.utils
 
+import kotlinx.coroutines.flow.Flow
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 
@@ -13,9 +15,9 @@ interface APIService {
     suspend fun getPosts(): Response<Posts>
 
     @POST("signin")
-    suspend fun signIn(signInRequest: SignInRequest): Response<SignInOrUpResponse>
+    suspend fun signIn(@Body signInRequest: SignInRequest): Response<SignInOrUpResponse>
 
     @POST("signup")
-    suspend fun signUp(signUpRequest: SignUpRequest): Response<SignInOrUpResponse>
+    suspend fun signUp(@Body signUpRequest: SignUpRequest): Response<SignInOrUpResponse>
 
 }

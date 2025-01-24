@@ -18,8 +18,6 @@ import javax.inject.Inject
 @HiltViewModel
 class NametagDuckItTestAppViewModel @Inject constructor(private val dataStoreRepository: DataStoreRepository) : ViewModel() {
 
-    val isLoggedInFlow = dataStoreRepository.isLoggedInFlow.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), false)
-
     fun logout() {
         viewModelScope.launch {
             dataStoreRepository.logout()

@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 class DataStoreRepository @Inject constructor(private val dataStoreModule: DataStore<Preferences>) {
 
-    val isLoggedInFlow: Flow<Boolean> = dataStoreModule.data
+    fun isLoggedInFlow(): Flow<Boolean> = dataStoreModule.data
         .catch { exception ->
             if (exception is IOException) {
                 emit(emptyPreferences())
@@ -22,6 +22,8 @@ class DataStoreRepository @Inject constructor(private val dataStoreModule: DataS
             }
         }
         .map { preferences ->
+            println(preferences.asMap())
+            println(preferences[stringPreferencesKey("encryptedData")] != null)
             preferences[stringPreferencesKey("encryptedData")] != null
         }
 

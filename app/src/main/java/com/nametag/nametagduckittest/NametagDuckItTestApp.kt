@@ -42,9 +42,7 @@ fun NametagDuckItTestApp(navController: NavHostController = rememberNavControlle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: NavHostController, viewModel: NametagDuckItTestAppViewModel = hiltViewModel()) {
-
-    val isLoggedIn = viewModel.isLoggedInFlow.collectAsStateWithLifecycle()
+fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: NavHostController, viewModel: NametagDuckItTestAppViewModel = hiltViewModel(), isLoggedIn: Boolean) {
 
     TopAppBar(modifier = modifier, title = { Text(text = stringResource(id = titleResourceId)) },
         navigationIcon = {
@@ -59,10 +57,12 @@ fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: Na
         },
         actions = {
             if (navController.currentBackStackEntry?.destination?.route != Screens.SignInOrUp.route) {
-                if (isLoggedIn.value) {
+                if (isLoggedIn) {
                     IconButton(onClick = {
                         viewModel.logout()
-                        navController.navigate(Screens.PostsList.route)
+                        if (navController.currentBackStackEntry?.destination?.route != Screens.PostsList.route) {
+                            navController.navigate(Screens.PostsList.route)
+                        }
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_logout),
