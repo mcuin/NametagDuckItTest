@@ -19,7 +19,6 @@ compose-navigation = "2.8.5"
 hilt-navigation-compose = "1.2.0"
 coil = "3.0.4"
 datastore = "1.1.2"
-datastorePreferencesCoreJvm = "1.1.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

@@ -1,6 +1,8 @@
 package com.nametag.nametagduckittest.utils
 
+import retrofit2.Response
 import retrofit2.http.GET
+import retrofit2.http.POST
 
 /**
  * Interface for the Retrofit API service.
@@ -8,5 +10,12 @@ import retrofit2.http.GET
 interface APIService {
 
     @GET("posts")
-    suspend fun getPosts(): Posts
+    suspend fun getPosts(): Response<Posts>
+
+    @POST("signin")
+    suspend fun signIn(signInRequest: SignInRequest): Response<SignInOrUpResponse>
+
+    @POST("signup")
+    suspend fun signUp(signUpRequest: SignUpRequest): Response<SignInOrUpResponse>
+
 }

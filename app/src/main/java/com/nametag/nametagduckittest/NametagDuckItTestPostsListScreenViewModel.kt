@@ -17,8 +17,13 @@ import javax.inject.Inject
 @HiltViewModel
 class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val duckItPostsListRepository: NametagDuckItPostsListRepository) : ViewModel() {
 
-    val states = duckItPostsListRepository.getPosts().map { posts ->
-        if (posts.Posts.isEmpty()) {
+    val states = duckItPostsListRepository.getPosts().map { response ->
+        when (response.code()) {
+            200 -> response.body()
+            else -> null
+        }
+    }.map { posts ->
+        if (posts == null || posts.Posts.isEmpty()) {
             DuckItPostsUIState.Error
         } else {
             DuckItPostsUIState.Success(posts.Posts)

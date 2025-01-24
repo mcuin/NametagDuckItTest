@@ -47,7 +47,7 @@ class EncryptionRepository @Inject constructor(private val keystoreModule: Keyst
         val encryptedData = cipher.doFinal(data.toByteArray())
         dataStoreModule.edit { preferences ->
             preferences[stringPreferencesKey("iv")] = iv.toString()
-            preferences[stringPreferencesKey("encrypted_data")] = encryptedData.toString()
+            preferences[stringPreferencesKey("encryptedData")] = encryptedData.toString()
         }
     }
 
@@ -60,7 +60,7 @@ class EncryptionRepository @Inject constructor(private val keystoreModule: Keyst
             }
         }.map { preferences ->
             val iv = preferences[stringPreferencesKey("iv")]?.toByteArray() ?: return@map null
-            val encryptedData = preferences[stringPreferencesKey("encrypted_data")]?.toByteArray() ?: return@map null
+            val encryptedData = preferences[stringPreferencesKey("encryptedData")]?.toByteArray() ?: return@map null
             val secretKey = generateSecretKey(keyAlias)
             val cipher = keystoreModule.provideCipher()
             cipher.init(Cipher.DECRYPT_MODE, secretKey, IvParameterSpec(iv))

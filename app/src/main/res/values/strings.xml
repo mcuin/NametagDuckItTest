@@ -7,4 +7,11 @@
     <string name="login_description">Login</string>
     <string name="logout_description">Logout</string>
     <string name="posts_screen_title">Duckit</string>
+    <string name="email_label">Email</string>
+    <string name="password_label">Password</string>
+    <string name="email_error">Invalid email format. Must include @ and .</string>
+    <string name="password_error">Invalid password format. Must be 8 characters long.</string>
+    <string name="clear_description">Clear current text entry</string>
+    <string name="password_visible_description">Password is visible</string>
+    <string name="password_hidden_description">Password is hidden</string>
 </resources>

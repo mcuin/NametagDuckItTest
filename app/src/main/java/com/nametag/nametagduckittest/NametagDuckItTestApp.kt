@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -31,13 +33,19 @@ fun NametagDuckItTestApp(navController: NavHostController = rememberNavControlle
             composable(Screens.PostsList.route) {
                 NametagDuckItTestPostsListScreen(modifier = Modifier, navController = navController)
             }
+            composable(Screens.SignInOrUp.route) {
+                NametagDuckItSignInOrUpScreen(modifier = Modifier, navHostController = navController)
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: NavHostController) {
+fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: NavHostController, viewModel: NametagDuckItTestAppViewModel = hiltViewModel()) {
+
+    val isLoggedIn = viewModel.isLoggedInFlow.collectAsStateWithLifecycle()
+
     TopAppBar(modifier = modifier, title = { Text(text = stringResource(id = titleResourceId)) },
         navigationIcon = {
             if (navController.previousBackStackEntry != null) {
@@ -50,8 +58,27 @@ fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: Na
             }
         },
         actions = {
-            IconButton(onClick = { }) {
-                Icon(painter = painterResource(id = R.drawable.ic_login), contentDescription = stringResource(id = R.string.login_description))
+            if (navController.currentBackStackEntry?.destination?.route != Screens.SignInOrUp.route) {
+                if (isLoggedIn.value) {
+                    IconButton(onClick = {
+                        viewModel.logout()
+                        navController.navigate(Screens.PostsList.route)
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_logout),
+                            contentDescription = stringResource(id = R.string.logout_description)
+                        )
+                    }
+                } else {
+                    IconButton(onClick = {
+                        navController.navigate(Screens.SignInOrUp.route)
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_login),
+                            contentDescription = stringResource(id = R.string.login_description)
+                        )
+                    }
+                }
             }
         })
 }
@@ -62,4 +89,5 @@ fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: Na
  */
 sealed class Screens(val route: String) {
     object PostsList : Screens("postsList")
+    object SignInOrUp : Screens("signInOrUp")
 }
