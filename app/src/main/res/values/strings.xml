@@ -22,4 +22,8 @@
     <string name="new_post_fab_description">Create new post</string>
     <string name="login_required_upvote">Logging in is required to upvote posts</string>
     <string name="login_required_downvote">Logging in is required to downvote posts</string>
+    <string name="new_post_headline_label">Headline your duck</string>
+    <string name="new_post_image_upload_label">Upload your duck</string>
+    <string name="new_post_submit_label">Submit your duck</string>
+    <string name="new_post_title">New Duck</string>
 </resources>

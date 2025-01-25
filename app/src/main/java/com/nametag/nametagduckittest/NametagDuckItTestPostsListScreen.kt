@@ -52,23 +52,19 @@ import kotlinx.coroutines.launch
 fun NametagDuckItTestPostsListScreen(modifier: Modifier, navController: NavHostController, nametagDuckItTestPostsListScreenViewModel: NametagDuckItTestPostsListScreenViewModel = hiltViewModel()) {
 
     val snackbarHostState = remember { SnackbarHostState() }
+    val postsStates by nametagDuckItTestPostsListScreenViewModel.uiState.collectAsStateWithLifecycle()
 
-    val isLoggedIn by nametagDuckItTestPostsListScreenViewModel.isLoggedIn.collectAsState()
-
-    Scaffold(topBar = { DuckItTopToolbar(modifier = modifier, titleResourceId = R.string.posts_screen_title, navController = navController, isLoggedIn = isLoggedIn) },
-        floatingActionButton = { if (isLoggedIn) DuckItNewPostFAB(modifier = modifier) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
-        Column(modifier = modifier.fillMaxSize().padding(paddingValues)) {
-
-            val postsStates by nametagDuckItTestPostsListScreenViewModel.states.collectAsStateWithLifecycle()
-
-            when (val postState = postsStates) {
-                is DuckItPostsUIState.Error -> {}
-                is DuckItPostsUIState.Loading -> CircularProgressIndicator(modifier = modifier)
-                is DuckItPostsUIState.Success -> {
+    when (val postState = postsStates) {
+        is DuckItPostsUIState.Error -> {}
+        is DuckItPostsUIState.Loading -> CircularProgressIndicator(modifier = modifier.fillMaxSize())
+        is DuckItPostsUIState.Success -> {
+            Scaffold(topBar = { DuckItTopToolbar(modifier = modifier, titleResourceId = R.string.posts_screen_title, navController = navController, isLoggedIn = postState.isLoggedIn) },
+                floatingActionButton = { if (postState.isLoggedIn) DuckItNewPostFAB(modifier = modifier, navController = navController) },
+                snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
+                Column(modifier = modifier.fillMaxSize().padding(paddingValues)) {
                     LazyColumn {
-                        items(postState.posts) { post ->
-                            DuckItPostCard(modifier = modifier, post = post, isLoggedIn = isLoggedIn, snackbarHostState)
+                        items(postState.postsList) { post ->
+                            DuckItPostCard(modifier = modifier, post = post, isLoggedIn = postState.isLoggedIn, snackbarHostState, nametagDuckItTestPostsListScreenViewModel)
                         }
                     }
                 }
@@ -83,7 +79,7 @@ fun NametagDuckItTestPostsListScreen(modifier: Modifier, navController: NavHostC
  * @param post The data classed Post to pull data from.
  */
 @Composable
-fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbarHostState: SnackbarHostState) {
+fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbarHostState: SnackbarHostState, nametagDuckItTestPostsListScreenViewModel: NametagDuckItTestPostsListScreenViewModel) {
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -96,7 +92,7 @@ fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbar
             Row {
                 IconButton(modifier = modifier, onClick = {
                     if (isLoggedIn) {
-                        //post.upvotes += 1
+                        nametagDuckItTestPostsListScreenViewModel.upVotePost(post.id)
                     } else {
                         scope.launch {
                             snackbarHostState.showSnackbar(context.getString(R.string.login_required_upvote))
@@ -108,7 +104,7 @@ fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbar
                 Text(modifier = modifier.padding(8.dp).align(Alignment.CenterVertically), text = post.upvotes.toString())
                 IconButton(modifier = modifier, onClick = {
                     if (isLoggedIn) {
-                        //post.downvotes += 1
+                        nametagDuckItTestPostsListScreenViewModel.downVotePost(post.id)
                     } else {
                         scope.launch {
                             snackbarHostState.showSnackbar(context.getString(R.string.login_required_downvote))
@@ -123,9 +119,9 @@ fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbar
 }
 
 @Composable
-fun DuckItNewPostFAB(modifier: Modifier) {
+fun DuckItNewPostFAB(modifier: Modifier, navController: NavHostController) {
     FloatingActionButton(modifier = modifier, onClick = {
-
+        navController.navigate(Screens.NewPost.route)
     }) {
         Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(id = R.string.new_post_fab_description))
     }

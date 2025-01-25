@@ -36,6 +36,9 @@ fun NametagDuckItTestApp(navController: NavHostController = rememberNavControlle
             composable(Screens.SignInOrUp.route) {
                 NametagDuckItSignInOrUpScreen(modifier = Modifier, navHostController = navController)
             }
+            composable(Screens.NewPost.route) {
+                NametagDuckItTestNewPostScreen(modifier = Modifier, navController = navController)
+            }
         }
     }
 }
@@ -90,4 +93,5 @@ fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: Na
 sealed class Screens(val route: String) {
     object PostsList : Screens("postsList")
     object SignInOrUp : Screens("signInOrUp")
+    object NewPost : Screens("newPost")
 }
