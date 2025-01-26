@@ -17,9 +17,18 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RetrofitModule {
 
+    /**
+     * Provides the base URL for the Retrofit instance.
+     * @return The base URL for the Retrofit instance.
+     */
     @Provides
     fun provideBaseUrl() = "https://nametag-duckit-2.uc.r.appspot.com/"
 
+    /**
+     * Provides the Retrofit instance.
+     * @param baseUrl The base URL for the Retrofit instance.
+     * @return The Retrofit instance.
+     */
     @Provides
     @Singleton
     fun provideRetrofit(baseUrl: String) = Retrofit.Builder()
@@ -28,6 +37,11 @@ object RetrofitModule {
             Json.asConverterFactory("application/json".toMediaType())
         ).build()
 
+    /**
+     * Provides the API service for the Retrofit instance.
+     * @param retrofit The Retrofit instance.
+     * @return The API service for the Retrofit instance.
+     */
     @Provides
     @Singleton
     fun provideApiService(retrofit: Retrofit) = retrofit.create(APIService::class.java)

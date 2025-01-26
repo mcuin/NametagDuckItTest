@@ -12,12 +12,7 @@ import com.nametag.nametagduckittest.utils.SignInRequest
 import com.nametag.nametagduckittest.utils.SignUpRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -52,33 +47,30 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
     fun signIn() {
         val signInRequest = SignInRequest(emailText, passwordText)
         viewModelScope.launch {
-            repository.signIn(signInRequest).map { response ->
-                println("Token to encrypt: " + response.body()!!.token)
-                when (response.code()) {
-                    200 -> {
-                        encryptionRepository.encryptData(response.body()!!.token)
-                        _signUpSuccess.emit(response.code())
-                    }
-                    404 -> {
-                        signUp()
-                        _signUpSuccess.emit(response.code())
-                    }
-                    else -> _signUpSuccess.emit(response.code())
+            val signInResponse = repository.signIn(signInRequest)
+            when (signInResponse.code()) {
+                200 -> {
+                    encryptionRepository.encryptData(signInResponse.body()!!.token)
+                    _signUpSuccess.emit(signInResponse.code())
                 }
-            }.shareIn(viewModelScope, SharingStarted.Eagerly)
+                404 -> {
+                    signUp()
+                    _signUpSuccess.emit(signInResponse.code())
+                }
+                else -> _signUpSuccess.emit(signInResponse.code())
+            }
         }
     }
 
     private suspend fun signUp() {
         val signUpRequest = SignUpRequest(emailText, passwordText)
-        repository.signUp(signUpRequest).map { response ->
-            when (response.code()) {
-                200 -> {
-                    encryptionRepository.encryptData(response.body()!!.token)
-                    _signUpSuccess.emit(response.code())
-                }
-                else -> _signUpSuccess.emit(response.code())
+        val signUpResponse = repository.signUp(signUpRequest)
+        when (signUpResponse.code()) {
+            200 -> {
+                encryptionRepository.encryptData(signUpResponse.body()!!.token)
+                _signUpSuccess.emit(signUpResponse.code())
             }
-        }.shareIn(viewModelScope, SharingStarted.Eagerly)
+            else -> _signUpSuccess.emit(signUpResponse.code())
+        }
     }
 }

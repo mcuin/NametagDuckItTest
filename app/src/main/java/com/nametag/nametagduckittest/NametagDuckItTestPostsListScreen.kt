@@ -1,6 +1,5 @@
 package com.nametag.nametagduckittest
 
-import android.widget.Toolbar
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -21,9 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,11 +31,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
 import com.nametag.nametagduckittest.utils.Post
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -51,7 +45,9 @@ import kotlinx.coroutines.launch
 @Composable
 fun NametagDuckItTestPostsListScreen(modifier: Modifier, navController: NavHostController, nametagDuckItTestPostsListScreenViewModel: NametagDuckItTestPostsListScreenViewModel = hiltViewModel()) {
 
+    //Snackbar host state for showing snackbar messages
     val snackbarHostState = remember { SnackbarHostState() }
+    //Collects the ui state from the view model as a state
     val postsStates by nametagDuckItTestPostsListScreenViewModel.uiState.collectAsStateWithLifecycle()
 
     when (val postState = postsStates) {
@@ -118,6 +114,11 @@ fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbar
     }
 }
 
+/**
+ * Composable for the submit post fab
+ * @param modifier The modifier to apply to the composable.
+ * @param navController The navigation controller to navigate to other screens.
+ */
 @Composable
 fun DuckItNewPostFAB(modifier: Modifier, navController: NavHostController) {
     FloatingActionButton(modifier = modifier, onClick = {

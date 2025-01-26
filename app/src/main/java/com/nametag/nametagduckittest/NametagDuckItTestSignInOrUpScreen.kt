@@ -8,7 +8,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
@@ -16,7 +15,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,17 +33,26 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
+/**
+ * Composable for the sign in or up screen
+ * @param modifier The modifier to apply to the composable
+ * @param navHostController The navigation controller to navigate to other screens
+ * @param nametagDuckItTestSignInOrUpViewModel The view model for the sign in or up screen
+ */
 @Composable
 fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHostController, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel = hiltViewModel()) {
 
+    //Scope for coroutines
     val scope = rememberCoroutineScope()
+    //Snackbar host state for the snackbar
     val snackbarHostState = remember { SnackbarHostState() }
+    //Flow for the login success state
     val signUpSuccess by nametagDuckItTestSignInOrUpViewModel.signUpSuccess.collectAsStateWithLifecycle(initialValue = -1)
-
+    //Context to get resources
     val context = LocalContext.current
+    //Launched effect to collect the login success state
     LaunchedEffect(Unit) {
         nametagDuckItTestSignInOrUpViewModel.loginSuccess.collect { code ->
             when (code) {
@@ -102,6 +109,11 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
     }
 }
 
+/**
+ * Composable for the email text field
+ * @param modifier The modifier to apply to the composable
+ * @param nametagDuckItTestSignInOrUpViewModel The view model for the sign in or up screen
+ */
 @Composable
 fun EmailTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel) {
 
@@ -123,6 +135,11 @@ fun EmailTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: Nam
     )
 }
 
+/**
+ * Composable for the password text field
+ * @param modifier The modifier to apply to the composable
+ * @param nametagDuckItTestSignInOrUpViewModel The view model for the sign in or up screen
+ */
 @Composable
 fun PasswordTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel) {
 
@@ -146,6 +163,11 @@ fun PasswordTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: 
     )
 }
 
+/**
+ * Composable for the sign in or up floating action button
+ * @param modifier The modifier to apply to the composable
+ * @param nametagDuckItTestSignInOrUpViewModel The view model for the sign in or up screen
+ */
 @Composable
 fun SignInOrUpFAB(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel) {
     ExtendedFloatingActionButton(modifier = modifier, onClick = {

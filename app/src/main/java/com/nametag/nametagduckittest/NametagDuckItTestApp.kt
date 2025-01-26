@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -43,9 +42,17 @@ fun NametagDuckItTestApp(navController: NavHostController = rememberNavControlle
     }
 }
 
+/**
+ * Composable for the top toolbar of the app.
+ * @param modifier The modifier to apply to the composable
+ * @param titleResourceId The resource ID for the title of the toolbar
+ * @param navController The navigation controller to navigate to other screens
+ * @param nametagDuckItTestAppViewModel The view model for the app
+ * @param isLoggedIn Whether the user is logged in or not
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: NavHostController, viewModel: NametagDuckItTestAppViewModel = hiltViewModel(), isLoggedIn: Boolean) {
+fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: NavHostController, nametagDuckItTestAppViewModel: NametagDuckItTestAppViewModel = hiltViewModel(), isLoggedIn: Boolean) {
 
     TopAppBar(modifier = modifier, title = { Text(text = stringResource(id = titleResourceId)) },
         navigationIcon = {
@@ -62,7 +69,7 @@ fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: Na
             if (navController.currentBackStackEntry?.destination?.route != Screens.SignInOrUp.route) {
                 if (isLoggedIn) {
                     IconButton(onClick = {
-                        viewModel.logout()
+                        nametagDuckItTestAppViewModel.logout()
                         if (navController.currentBackStackEntry?.destination?.route != Screens.PostsList.route) {
                             navController.navigate(Screens.PostsList.route)
                         }
