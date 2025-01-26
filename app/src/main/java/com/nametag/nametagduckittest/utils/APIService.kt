@@ -1,10 +1,15 @@
 package com.nametag.nametagduckittest.utils
 
-import kotlinx.coroutines.flow.Flow
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.Part
+import retrofit2.http.Path
 
 /**
  * Interface for the Retrofit API service.
@@ -12,7 +17,7 @@ import retrofit2.http.POST
 interface APIService {
 
     @GET("posts")
-    suspend fun getPosts(): Response<Posts>
+    suspend fun getPosts(@Header("Authorization") token: String?): Response<PostsResponse>
 
     @POST("signin")
     suspend fun signIn(@Body signInRequest: SignInRequest): Response<SignInOrUpResponse>
@@ -20,4 +25,12 @@ interface APIService {
     @POST("signup")
     suspend fun signUp(@Body signUpRequest: SignUpRequest): Response<SignInOrUpResponse>
 
+    @POST("posts/{id}/upvote")
+    suspend fun upvotePost(@Header("Authorization") token: String, @Path("id") postId: String): Response<VotesResponse>
+
+    @POST("posts/{id}/downvote")
+    suspend fun downvotePost(@Header("Authorization") token: String, @Path("id") postId: String): Response<VotesResponse>
+
+    @POST("posts")
+    suspend fun createPost(@Header("Authorization") token: String, @Body newPostRequest: NewPostRequest): Response<NewPostResponse>
 }

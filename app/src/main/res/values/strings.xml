@@ -23,7 +23,12 @@
     <string name="login_required_upvote">Logging in is required to upvote posts</string>
     <string name="login_required_downvote">Logging in is required to downvote posts</string>
     <string name="new_post_headline_label">Headline your duck</string>
-    <string name="new_post_image_upload_label">Upload your duck</string>
+    <string name="new_post_image_link_label">Link your duck</string>
     <string name="new_post_submit_label">Submit your duck</string>
     <string name="new_post_title">New Duck</string>
+    <string name="new_post_image_preview">Preview your duck</string>
+    <string name="new_post_headline_error">You must describe your duck</string>
+    <string name="new_post_link_error">Incorrectly formatted link. We need to see your duck</string>
+    <string name="new_post_success">Successful post, thank you for sharing your duck</string>
+    <string name="new_post_error">Error submitting your duck. Please try again later</string>"
 </resources>

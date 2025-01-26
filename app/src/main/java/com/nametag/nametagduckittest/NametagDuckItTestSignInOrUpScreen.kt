@@ -43,8 +43,6 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
 
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-
-
     val signUpSuccess by nametagDuckItTestSignInOrUpViewModel.signUpSuccess.collectAsStateWithLifecycle(initialValue = -1)
 
     val context = LocalContext.current

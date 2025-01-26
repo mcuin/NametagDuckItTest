@@ -53,9 +53,10 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
         val signInRequest = SignInRequest(emailText, passwordText)
         viewModelScope.launch {
             repository.signIn(signInRequest).map { response ->
+                println("Token to encrypt: " + response.body()!!.token)
                 when (response.code()) {
                     200 -> {
-                        encryptionRepository.encryptData(response.body()!!.token, "apiToken")
+                        encryptionRepository.encryptData(response.body()!!.token)
                         _signUpSuccess.emit(response.code())
                     }
                     404 -> {
@@ -73,7 +74,7 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
         repository.signUp(signUpRequest).map { response ->
             when (response.code()) {
                 200 -> {
-                    encryptionRepository.encryptData(response.body()!!.token, "apiToken")
+                    encryptionRepository.encryptData(response.body()!!.token)
                     _signUpSuccess.emit(response.code())
                 }
                 else -> _signUpSuccess.emit(response.code())
