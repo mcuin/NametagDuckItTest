@@ -1,5 +1,6 @@
 package com.nametag.nametagduckittest
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.toMutableStateList
 import androidx.lifecycle.ViewModel
@@ -59,14 +60,14 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
                     val response = duckItPostsListRepository.upVotePost(decryptedToken, postId)
                     when (response.code()) {
                         200 -> {
-                            /*_uiState.update { currentState ->
-                                val index = (currentState as DuckItPostsUIState.Success).postsList.indexOfFirst { post -> post.id == postId }
-                                currentState.postsList[index] = currentState.postsList[index].copy(upvotes = response.body()!!.upvotes)
-                                currentState
-                            }*/
-                            val post = (_uiState.value as DuckItPostsUIState.Success).postsList.indexOfFirst { it.id == postId }
-                            (_uiState.value as DuckItPostsUIState.Success).postsList[post] = (_uiState.value as DuckItPostsUIState.Success).postsList[post].copy(upvotes = response.body()!!.upvotes)
-
+                            _uiState.update { currentState ->
+                                (currentState as DuckItPostsUIState.Success).copy(
+                                    currentState.postsList.toMutableList().also {
+                                        it.indexOfFirst { post -> post.id == postId }.also { index ->
+                                            it[index] = it[index].copy(upvotes = response.body()!!.upvotes)
+                                        }
+                                    })
+                            }
                         }
                         else -> {}
                     }
@@ -77,15 +78,22 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
     }
 
     fun downVotePost(postId: String) {
-        if (states.value is DuckItPostsUIState.Success) {
+        if (_uiState.value is DuckItPostsUIState.Success) {
             viewModelScope.launch {
                 val decryptedToken = encryptionRepository.decryptData()
                 if (decryptedToken != null) {
                     val response = duckItPostsListRepository.downVotePost(decryptedToken, postId)
+                    println(response)
                     when (response.code()) {
                         200 -> {
-                            val post = (states.value as DuckItPostsUIState.Success).postsList.indexOfFirst { it.id == postId }
-                            (states.value as DuckItPostsUIState.Success).postsList[post] = (states.value as DuckItPostsUIState.Success).postsList[post].copy(upvotes = response.body()!!.upvotes)
+                            _uiState.update { currentState ->
+                                (currentState as DuckItPostsUIState.Success).copy(
+                                    currentState.postsList.toMutableList().also {
+                                        it.indexOfFirst { post -> post.id == postId }.also { index ->
+                                            it[index] = it[index].copy(upvotes = response.body()!!.upvotes)
+                                        }
+                                    })
+                            }
                         }
                         else -> {}
                     }
@@ -98,8 +106,9 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
 /**
  * Sealed interface to represent the state of the posts list screen.
  */
+@Immutable
 sealed class DuckItPostsUIState {
-    data class Success(val postsList: MutableList<Post>, val isLoggedIn: Boolean) : DuckItPostsUIState()
+    data class Success(val postsList: List<Post>, val isLoggedIn: Boolean) : DuckItPostsUIState()
     data object Error : DuckItPostsUIState()
     data object Loading : DuckItPostsUIState()
 }
