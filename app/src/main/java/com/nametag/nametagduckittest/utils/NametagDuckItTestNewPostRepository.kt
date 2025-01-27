@@ -1,5 +1,6 @@
 package com.nametag.nametagduckittest.utils
 
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -16,6 +17,10 @@ class NametagDuckItTestNewPostRepository @Inject constructor(private val apiServ
      * @return Response<NewPostResponse> The new post response from the api
      */
     suspend fun createPost(token: String, newPostRequest: NewPostRequest): Response<NewPostResponse> {
-        return apiService.createPost(token = "Bearer $token", newPostRequest)
+        return try {
+            apiService.createPost(token = "Bearer $token", newPostRequest)
+        } catch (e: Exception) {
+            Response.error(500, "".toResponseBody(null))
+        }
     }
 }

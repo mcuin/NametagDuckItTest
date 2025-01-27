@@ -32,7 +32,11 @@ class NametagDuckItPostsListRepository @Inject constructor(private val apiServic
      * @return Response<VotesResponse> The upvote response from the api
      */
     suspend fun upVotePost(token : String, postId: String): Response<VotesResponse> {
-        return apiService.upvotePost(token = "Bearer \"$token\"", postId = postId)
+        return try {
+            apiService.upvotePost(token = "Bearer \"$token\"", postId = postId)
+        } catch (e: HttpException) {
+            Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+        }
     }
 
     /**
@@ -42,6 +46,10 @@ class NametagDuckItPostsListRepository @Inject constructor(private val apiServic
      * @return Response<VotesResponse> The downvote response from the api
      */
     suspend fun downVotePost(token: String, postId: String): Response<VotesResponse> {
-        return apiService.downvotePost(token = "Bearer \"$token\"", postId = postId)
+        return try {
+            apiService.downvotePost(token = "Bearer \"$token\"", postId = postId)
+        } catch (e: HttpException) {
+            Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+        }
     }
 }

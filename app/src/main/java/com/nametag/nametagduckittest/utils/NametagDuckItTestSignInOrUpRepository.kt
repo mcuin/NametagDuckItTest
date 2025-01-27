@@ -1,5 +1,7 @@
 package com.nametag.nametagduckittest.utils
 
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -14,12 +16,20 @@ class NametagDuckItTestSignInOrUpRepository @Inject constructor(private val apiS
      * @param signInRequest The sign in request to send to the api containing username and password
      * @return Response<SignInOrUpResponse> The sign in response from the api
      */
-    suspend fun signIn(signInRequest: SignInRequest): Response<SignInOrUpResponse> = apiService.signIn(signInRequest)
+    suspend fun signIn(signInRequest: SignInRequest): Response<SignInOrUpResponse> = try {
+        apiService.signIn(signInRequest)
+    } catch (e: HttpException) {
+        Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+    }
 
     /**
      * Sign up a user to the app
      * @param signUpRequest The sign up request to send to the api containing username, password and email
      * @return Response<SignInOrUpResponse> The sign up response from the api
      */
-    suspend fun signUp(signUpRequest: SignUpRequest): Response<SignInOrUpResponse> = apiService.signUp(signUpRequest)
+    suspend fun signUp(signUpRequest: SignUpRequest): Response<SignInOrUpResponse> = try {
+        apiService.signUp(signUpRequest)
+    } catch (e: HttpException) {
+        Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+    }
 }
