@@ -1,5 +1,6 @@
 package com.nametag.nametagduckittest
 
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,6 +11,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -32,6 +35,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import coil3.compose.AsyncImage
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -73,11 +77,8 @@ fun NametagDuckItTestNewPostScreen(modifier: Modifier, navController: NavHostCon
 
     Scaffold(modifier = modifier,
         topBar = { DuckItTopToolbar(modifier, titleResourceId =  R.string.new_post_title, navController = navController, isLoggedIn = true) },
-        floatingActionButton = { if ((!nametagDuckItTestNewPostViewModel.headLineError.value
-                    && !nametagDuckItTestNewPostViewModel.imageError.value)
-            && nametagDuckItTestNewPostViewModel.imageData.value.isNotBlank()
-            && nametagDuckItTestNewPostViewModel.headlineText.value.isNotBlank()) SubmitPostFAB(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
+        floatingActionButton = { SubmitPostFAB(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel, scope = scope, snackbarHostState = snackbarHostState, context = context) },
+        snackbarHost = { SnackbarHost(modifier = modifier.testTag("newPostSnackbar"), hostState = snackbarHostState) }) { paddingValues ->
         Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(paddingValues).imePadding()) {
             HeadlineTextEntry(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel)
             ImageLinkTextEntry(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel)
@@ -93,7 +94,7 @@ fun NametagDuckItTestNewPostScreen(modifier: Modifier, navController: NavHostCon
 @Composable
 fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel) {
 
-    OutlinedTextField(modifier = modifier.fillMaxWidth(),
+    OutlinedTextField(modifier = modifier.fillMaxWidth().testTag("headlineTextField"),
         value = nametagDuckItTestNewPostViewModel.headlineText.value,
         onValueChange = {
             nametagDuckItTestNewPostViewModel.updateHeadlineText(it)
@@ -102,7 +103,7 @@ fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nam
         isError = nametagDuckItTestNewPostViewModel.headLineError.value,
         trailingIcon = {
             if (nametagDuckItTestNewPostViewModel.headlineText.value.isNotBlank()) {
-                IconButton(modifier = modifier, onClick = {
+                IconButton(modifier = modifier.testTag("newPostHeadlineClear"), onClick = {
                     nametagDuckItTestNewPostViewModel.updateHeadlineText("")
                 }) {
                     Icon(
@@ -115,7 +116,7 @@ fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nam
         singleLine = true,
         supportingText = {
             if (nametagDuckItTestNewPostViewModel.headLineError.value) {
-                Text(text = stringResource(id = R.string.new_post_headline_error))
+                Text(modifier = modifier.testTag("headlineError"), text = stringResource(id = R.string.new_post_headline_error))
             }
         })
 }
@@ -128,9 +129,10 @@ fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nam
 @Composable
 fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel) {
 
-    if (nametagDuckItTestNewPostViewModel.imageData.value.isNotBlank()) {
-        Text(text = stringResource(id = R.string.new_post_image_preview))
+    if (nametagDuckItTestNewPostViewModel.imageData.value.isNotBlank() && !nametagDuckItTestNewPostViewModel.imageError.value) {
+        Text(modifier = modifier.fillMaxWidth().testTag("newPostPreviewImageTitle"), text = stringResource(id = R.string.new_post_image_preview))
         AsyncImage(
+            modifier = modifier.fillMaxWidth().testTag("newPostPreviewImage"),
             model = nametagDuckItTestNewPostViewModel.imageData.value,
             contentDescription = stringResource(id = R.string.post_image_description),
             onError = {
@@ -141,7 +143,7 @@ fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Na
             })
     }
     OutlinedTextField(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().testTag("newPostImageTextField"),
         value = nametagDuckItTestNewPostViewModel.imageData.value,
         onValueChange = {
             nametagDuckItTestNewPostViewModel.updateImageUri(it)
@@ -150,7 +152,7 @@ fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Na
         isError = nametagDuckItTestNewPostViewModel.imageError.value,
         trailingIcon = {
             if (nametagDuckItTestNewPostViewModel.imageData.value.isNotBlank()) {
-                IconButton(modifier = modifier, onClick = {
+                IconButton(modifier = modifier.testTag("newPostLinkClear"), onClick = {
                     nametagDuckItTestNewPostViewModel.updateImageUri("")
                 }) {
                     Icon(
@@ -163,7 +165,7 @@ fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Na
         singleLine = false,
         supportingText = {
             if (nametagDuckItTestNewPostViewModel.imageError.value) {
-                Text(text = stringResource(id = R.string.new_post_link_error))
+                Text(modifier = modifier.testTag("newPostImageError"), text = stringResource(id = R.string.new_post_link_error))
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done)
@@ -176,10 +178,34 @@ fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Na
  * @param nametagDuckItTestNewPostViewModel ViewModel for the new post screen provided by Hilt
  */
 @Composable
-fun SubmitPostFAB(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel) {
-    ExtendedFloatingActionButton(modifier = modifier, onClick = {
-        nametagDuckItTestNewPostViewModel.submitPost()
+fun SubmitPostFAB(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel, scope: CoroutineScope, snackbarHostState: SnackbarHostState, context: Context) {
+
+    val loading by nametagDuckItTestNewPostViewModel.loading.collectAsStateWithLifecycle(false)
+
+    ExtendedFloatingActionButton(modifier = modifier.testTag("newPostFAB"), onClick = {
+        when {
+            !nametagDuckItTestNewPostViewModel.headLineError.value
+                    && !nametagDuckItTestNewPostViewModel.imageError.value
+                    && nametagDuckItTestNewPostViewModel.imageData.value.isBlank()
+                    && nametagDuckItTestNewPostViewModel.headlineText.value.isBlank() -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(context.getString(R.string.new_post_submit_error))
+                        }
+                    }
+            loading -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.new_post_loading_label))
+                }
+            }
+            else -> {
+                nametagDuckItTestNewPostViewModel.submitPost()
+            }
+        }
     }) {
-        Text(text = stringResource(id = R.string.new_post_submit_label))
+        if (loading) {
+            CircularProgressIndicator()
+        } else {
+            Text(text = stringResource(id = R.string.new_post_submit_label))
+        }
     }
 }

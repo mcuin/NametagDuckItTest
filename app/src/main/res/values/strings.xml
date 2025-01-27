@@ -14,7 +14,7 @@
     <string name="clear_description">Clear current text entry</string>
     <string name="password_visible_description">Password is visible</string>
     <string name="password_hidden_description">Password is hidden</string>
-    <string name="invalid_login">Invalid email or password"</string>
+    <string name="invalid_login">Invalid email or password</string>
     <string name="account_not_found">Account with this email not found. Creating account.</string>
     <string name="sign_in_success">Successfully logged in</string>
     <string name="sign_up_success">Account successfully created</string>
@@ -30,5 +30,8 @@
     <string name="new_post_headline_error">You must describe your duck</string>
     <string name="new_post_link_error">Incorrectly formatted link. We need to see your duck</string>
     <string name="new_post_success">Successful post, thank you for sharing your duck</string>
-    <string name="new_post_error">Error submitting your duck. Please try again later</string>"
+    <string name="new_post_error">Error submitting your duck. Please try again later</string>
+    <string name="sign_in_or_up_loading">Attempting to sign in or up</string>
+    <string name="new_post_submit_error">Invalid headline or image link</string>
+    <string name="new_post_loading_label">Attempting to post your duck</string>
 </resources>

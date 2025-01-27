@@ -33,6 +33,8 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
     val loginSuccess = _loginSuccess.asSharedFlow()
     private val _signUpSuccess = MutableSharedFlow<Int>()
     val signUpSuccess = _signUpSuccess.asSharedFlow()
+    private val _loading = MutableSharedFlow<Boolean>()
+    val loading = _loading.asSharedFlow()
 
     fun updateEmailText(newText: String) {
         emailError = newText.isBlank() || !Patterns.EMAIL_ADDRESS.matcher(newText).matches()
@@ -45,6 +47,9 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
     }
 
     fun signIn() {
+        viewModelScope.launch {
+            _loading.emit(true)
+        }
         val signInRequest = SignInRequest(emailText, passwordText)
         viewModelScope.launch {
             val signInResponse = repository.signIn(signInRequest)
@@ -52,6 +57,7 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
                 200 -> {
                     encryptionRepository.encryptData(signInResponse.body()!!.token)
                     _signUpSuccess.emit(signInResponse.code())
+                    _loading.emit(false)
                 }
                 404 -> {
                     signUp()
@@ -69,6 +75,7 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
             200 -> {
                 encryptionRepository.encryptData(signUpResponse.body()!!.token)
                 _signUpSuccess.emit(signUpResponse.code())
+                _loading.emit(false)
             }
             else -> _signUpSuccess.emit(signUpResponse.code())
         }

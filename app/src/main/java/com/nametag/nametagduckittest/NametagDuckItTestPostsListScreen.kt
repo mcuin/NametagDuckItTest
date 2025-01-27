@@ -26,6 +26,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -121,7 +122,7 @@ fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbar
  */
 @Composable
 fun DuckItNewPostFAB(modifier: Modifier, navController: NavHostController) {
-    FloatingActionButton(modifier = modifier, onClick = {
+    FloatingActionButton(modifier = modifier.testTag("newPostFAB"), onClick = {
         navController.navigate(Screens.NewPost.route)
     }) {
         Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(id = R.string.new_post_fab_description))

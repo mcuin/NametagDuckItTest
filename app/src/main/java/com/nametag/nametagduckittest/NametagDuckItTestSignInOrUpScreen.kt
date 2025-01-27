@@ -1,5 +1,6 @@
 package com.nametag.nametagduckittest
 
+import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -25,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +36,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 /**
@@ -98,9 +102,9 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
         }
     }
 
-    Scaffold(topBar = { DuckItTopToolbar(modifier = modifier, titleResourceId = R.string.login_description, navController = navHostController, isLoggedIn = false) },
-        floatingActionButton = { SignInOrUpFAB(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel) },
-        snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
+    Scaffold(modifier = modifier.testTag("signInOrUpScreen"), topBar = { DuckItTopToolbar(modifier = modifier, titleResourceId = R.string.login_description, navController = navHostController, isLoggedIn = false) },
+        floatingActionButton = { SignInOrUpFAB(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel, scope = scope, snackbarHostState = snackbarHostState, context = context) },
+        snackbarHost = { SnackbarHost(modifier = modifier.testTag("signInOrUpSnackbar"), hostState = snackbarHostState) }) { paddingValues ->
 
         Column(modifier = modifier.fillMaxSize().padding(paddingValues)) {
             EmailTextField(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel)
@@ -117,17 +121,17 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
 @Composable
 fun EmailTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel) {
 
-    OutlinedTextField(modifier = modifier.fillMaxWidth(),
+    OutlinedTextField(modifier = modifier.testTag("emailTextField").fillMaxWidth(),
         label = { Text(text = stringResource(id = R.string.email_label)) },
         value = nametagDuckItTestSignInOrUpViewModel.emailText,
         onValueChange = nametagDuckItTestSignInOrUpViewModel::updateEmailText,
         isError = nametagDuckItTestSignInOrUpViewModel.emailError,
-        supportingText = { if (nametagDuckItTestSignInOrUpViewModel.emailError) Text(text = stringResource(id = R.string.email_error)) },
+        supportingText = { if (nametagDuckItTestSignInOrUpViewModel.emailError) Text(modifier = modifier.testTag("emailErrorText"), text = stringResource(id = R.string.email_error)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         trailingIcon = {
             if (nametagDuckItTestSignInOrUpViewModel.emailText.isNotBlank()) {
-                IconButton(onClick = { nametagDuckItTestSignInOrUpViewModel.updateEmailText("") }) {
+                IconButton(modifier = modifier.testTag("emailClear"), onClick = { nametagDuckItTestSignInOrUpViewModel.updateEmailText("") }) {
                     Icon(imageVector = Icons.Default.Clear, contentDescription = stringResource(id = R.string.back_description))
                 }
             }
@@ -145,17 +149,17 @@ fun PasswordTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: 
 
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    OutlinedTextField(modifier = modifier.fillMaxWidth(),
+    OutlinedTextField(modifier = modifier.testTag("passwordTextField").fillMaxWidth(),
         label = { Text(text = stringResource(id = R.string.password_label)) },
         value = nametagDuckItTestSignInOrUpViewModel.passwordText,
         onValueChange = nametagDuckItTestSignInOrUpViewModel::updatePasswordText,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         isError = nametagDuckItTestSignInOrUpViewModel.passwordError,
-        supportingText = { if (nametagDuckItTestSignInOrUpViewModel.passwordError) Text(text = stringResource(id = R.string.password_error)) },
+        supportingText = { if (nametagDuckItTestSignInOrUpViewModel.passwordError) Text(modifier = modifier.testTag("passwordErrorText"), text = stringResource(id = R.string.password_error)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         trailingIcon = {
-            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+            IconButton(modifier = modifier.testTag("passwordVisibility"), onClick = { passwordVisible = !passwordVisible }) {
                 Icon(painter = if (passwordVisible) painterResource(R.drawable.ic_visibility) else painterResource(R.drawable.ic_visibility_off),
                     contentDescription = if (passwordVisible) stringResource(id = R.string.password_visible_description) else stringResource(id = R.string.password_hidden_description))
             }
@@ -169,11 +173,39 @@ fun PasswordTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: 
  * @param nametagDuckItTestSignInOrUpViewModel The view model for the sign in or up screen
  */
 @Composable
-fun SignInOrUpFAB(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel) {
-    ExtendedFloatingActionButton(modifier = modifier, onClick = {
-        nametagDuckItTestSignInOrUpViewModel.signIn()
+fun SignInOrUpFAB(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel,
+                  scope: CoroutineScope, snackbarHostState: SnackbarHostState, context: Context) {
+
+    val loadingState by nametagDuckItTestSignInOrUpViewModel.loading.collectAsStateWithLifecycle(false)
+
+    ExtendedFloatingActionButton(modifier = modifier.testTag("signInOrUpFAB"), onClick = {
+        when {
+            nametagDuckItTestSignInOrUpViewModel.emailText.isBlank() ||
+                    nametagDuckItTestSignInOrUpViewModel.passwordText.isBlank() ||
+                    nametagDuckItTestSignInOrUpViewModel.passwordError ||
+                    nametagDuckItTestSignInOrUpViewModel.emailError -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.invalid_login))
+                }
+            }
+            loadingState -> {
+                scope.launch {
+                    snackbarHostState.showSnackbar(context.getString(R.string.sign_in_or_up_loading))
+                }
+            }
+            else -> {
+                nametagDuckItTestSignInOrUpViewModel.signIn()
+            }
+        }
     }, content = {
-        Icon(painter = painterResource(id = R.drawable.ic_login), contentDescription = stringResource(id = R.string.login_description))
-        Text(text = stringResource(id = R.string.login_description))
+        if (!loadingState) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_login),
+                contentDescription = stringResource(id = R.string.login_description)
+            )
+            Text(text = stringResource(id = R.string.login_description))
+        } else {
+            CircularProgressIndicator(modifier = modifier.testTag("signInOrUploadingIndicator"))
+        }
     })
 }

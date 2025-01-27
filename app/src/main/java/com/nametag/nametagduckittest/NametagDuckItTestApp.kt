@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -80,7 +81,7 @@ fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: Na
                         )
                     }
                 } else {
-                    IconButton(onClick = {
+                    IconButton(modifier = modifier.testTag("loginButton"), onClick = {
                         navController.navigate(Screens.SignInOrUp.route)
                     }) {
                         Icon(

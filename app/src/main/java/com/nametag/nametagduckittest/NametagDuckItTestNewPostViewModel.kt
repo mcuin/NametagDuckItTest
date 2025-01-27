@@ -34,6 +34,9 @@ class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostR
     var imageError = mutableStateOf(false)
         private set
 
+    val _loading = MutableSharedFlow<Boolean>()
+    val loading = _loading.asSharedFlow()
+
     //Shared flow for upload success
     private val _uploadSuccess = MutableSharedFlow<Boolean>()
     val uploadSuccess = _uploadSuccess.asSharedFlow()

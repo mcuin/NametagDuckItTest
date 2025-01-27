@@ -39,11 +39,11 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
     private val posts = duckItPostsListRepository.getPosts().map { response ->
         when (response.code()) {
             200 -> {
-                response.body()!!.Posts.toMutableList()
+                response.body()!!.Posts
             }
-            else -> mutableListOf()
+            else -> emptyList()
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, mutableListOf())
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     private val states = posts.combine(isLoggedIn) { posts, isLoggedIn ->
         when {
