@@ -3,6 +3,7 @@ package com.nametag.nametagduckittest
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coil3.network.HttpException
 import com.nametag.nametagduckittest.utils.DataStoreRepository
 import com.nametag.nametagduckittest.utils.EncryptionRepository
 import com.nametag.nametagduckittest.utils.NametagDuckItPostsListRepository
@@ -10,6 +11,7 @@ import com.nametag.nametagduckittest.utils.Post
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
@@ -43,7 +45,7 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
             }
             else -> emptyList()
         }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
 
     private val states = posts.combine(isLoggedIn) { posts, isLoggedIn ->
         when {
@@ -89,19 +91,25 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
             viewModelScope.launch {
                 val decryptedToken = encryptionRepository.decryptData()
                 if (decryptedToken != null) {
-                    val response = duckItPostsListRepository.downVotePost(decryptedToken, postId)
-                    when (response.code()) {
-                        200 -> {
-                            _uiState.update { currentState ->
-                                (currentState as DuckItPostsUIState.Success).copy(
-                                    currentState.postsList.toMutableList().also {
-                                        it.indexOfFirst { post -> post.id == postId }.also { index ->
-                                            it[index] = it[index].copy(upvotes = response.body()!!.upvotes)
-                                        }
-                                    })
+                    try {
+                        val response = duckItPostsListRepository.downVotePost(decryptedToken, postId)
+                        when (response.code()) {
+                            200 -> {
+                                _uiState.update { currentState ->
+                                    (currentState as DuckItPostsUIState.Success).copy(
+                                        currentState.postsList.toMutableList().also {
+                                            it.indexOfFirst { post -> post.id == postId }.also { index ->
+                                                it[index] = it[index].copy(upvotes = response.body()!!.upvotes)
+                                            }
+                                        })
+                                }
                             }
+                            else -> {}
                         }
-                        else -> {}
+                    } catch (e: HttpException) {
+                        _uiState.update {
+                            DuckItPostsUIState.Error
+                        }
                     }
                 }
             }

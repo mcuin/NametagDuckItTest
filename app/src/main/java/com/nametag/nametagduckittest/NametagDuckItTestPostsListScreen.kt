@@ -1,5 +1,6 @@
 package com.nametag.nametagduckittest
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -29,6 +30,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -52,8 +54,15 @@ fun NametagDuckItTestPostsListScreen(modifier: Modifier, navController: NavHostC
     val postsStates by nametagDuckItTestPostsListScreenViewModel.uiState.collectAsStateWithLifecycle()
 
     when (val postState = postsStates) {
-        is DuckItPostsUIState.Error -> {}
-        is DuckItPostsUIState.Loading -> CircularProgressIndicator(modifier = modifier.fillMaxSize())
+        is DuckItPostsUIState.Error -> {
+            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = "Error loading posts. Please try again later."
+                )
+            }
+        }
+        is DuckItPostsUIState.Loading -> CircularProgressIndicator(modifier = modifier)
         is DuckItPostsUIState.Success -> {
             Scaffold(topBar = { DuckItTopToolbar(modifier = modifier, titleResourceId = R.string.posts_screen_title, navController = navController, isLoggedIn = postState.isLoggedIn) },
                 floatingActionButton = { if (postState.isLoggedIn) DuckItNewPostFAB(modifier = modifier, navController = navController) },

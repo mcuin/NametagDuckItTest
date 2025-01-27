@@ -1,7 +1,11 @@
 package com.nametag.nametagduckittest.utils
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
+import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -17,6 +21,8 @@ class NametagDuckItPostsListRepository @Inject constructor(private val apiServic
      */
     fun getPosts(): Flow<Response<PostsResponse>> = flow {
         emit(apiService.getPosts(token = null))
+    }.catch {
+        emit(Response.error(500, "".toResponseBody(null)))
     }
 
     /**
