@@ -8,8 +8,15 @@ import com.nametag.nametagduckittest.utils.EncryptionRepository
 import com.nametag.nametagduckittest.utils.NametagDuckItTestNewPostRepository
 import com.nametag.nametagduckittest.utils.NewPostRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -22,32 +29,22 @@ import javax.inject.Inject
 class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostRepository: NametagDuckItTestNewPostRepository,
                                                             private val encryptionRepository: EncryptionRepository) : ViewModel() {
 
-    //Holds the state of the headline text field, and error state
-    var headlineText = mutableStateOf("")
-        private set
-    var headLineError = mutableStateOf(false)
-        private set
-
-    //Holds the state of the image link text field, and error state
-    var imageData = mutableStateOf("")
-        private set
-    var imageError = mutableStateOf(false)
-        private set
-
-    val _loading = MutableSharedFlow<Boolean>()
-    val loading = _loading.asSharedFlow()
-
-    //Shared flow for upload success
-    private val _uploadSuccess = MutableSharedFlow<Boolean>()
-    val uploadSuccess = _uploadSuccess.asSharedFlow()
+    private val _newPostUIState = MutableStateFlow(NewPostUiState(headlineError = false,
+        imageError = false,
+        loading = false,
+        headlineText = "",
+        imageLink = "",
+        successState = UploadSuccessState.Ready))
+    val newPostUIState = _newPostUIState.asStateFlow()
 
     /**
      * Updates the headline text field and checks if it is valid.
      * @param newHeadlineText The new headline text to set
      */
     fun updateHeadlineText(newHeadlineText: String) {
-        headLineError.value = newHeadlineText.isBlank()
-        headlineText.value = newHeadlineText
+        _newPostUIState.update { currentState ->
+            currentState.copy(headlineError = newHeadlineText.isBlank(), headlineText = newHeadlineText)
+        }
     }
 
     /**
@@ -55,8 +52,9 @@ class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostR
      * @param newImageUrl The new image URL to set
      */
     fun updateImageUri(newImageUrl: String) {
-        imageError.value = newImageUrl.isBlank() || !Patterns.WEB_URL.matcher(newImageUrl).matches()
-        imageData.value = newImageUrl
+        _newPostUIState.update { currentState ->
+            currentState.copy(imageError = newImageUrl.isBlank() || !Patterns.WEB_URL.matcher(newImageUrl).matches(), imageLink = newImageUrl)
+        }
     }
 
     /**
@@ -64,24 +62,43 @@ class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostR
      * @param coilError The error state to set from coil
      */
     fun imageNotFound(coilError: Boolean) {
-        imageError.value = coilError
+        _newPostUIState.update { currentState ->
+            currentState.copy(imageError = coilError)
+        }
     }
 
     /**
      * Submits the post to the server, and sets the upload success state accordingly.
      */
     fun submitPost() {
-        val newPostRequest = NewPostRequest(headline = headlineText.value, image = imageData.value)
+        val newPostRequest = NewPostRequest(headline = _newPostUIState.value.headlineText, image = _newPostUIState.value.imageLink)
         viewModelScope.launch {
             val decryptedToken = encryptionRepository.decryptData()
             if (decryptedToken != null) {
                 val response = newPostRepository.createPost(token = decryptedToken, newPostRequest)
                 if (response.isSuccessful) {
-                    _uploadSuccess.emit(true)
+                    _newPostUIState.update { currentState ->
+                        currentState.copy(successState = UploadSuccessState.Success)
+                    }
                 } else {
-                    _uploadSuccess.emit(false)
+                    _newPostUIState.update { currentState ->
+                        currentState.copy(successState = UploadSuccessState.Error)
+                    }
                 }
             }
         }
     }
+}
+
+data class NewPostUiState(val headlineError: Boolean,
+                          val imageError: Boolean,
+                          val loading: Boolean,
+                          val headlineText: String,
+                          val imageLink: String,
+                          val successState: UploadSuccessState)
+
+sealed class UploadSuccessState {
+    object Success : UploadSuccessState()
+    object Error : UploadSuccessState()
+    object Ready : UploadSuccessState()
 }

@@ -54,34 +54,38 @@ fun NametagDuckItTestNewPostScreen(modifier: Modifier, navController: NavHostCon
     //Context for getting string resources
     val context = LocalContext.current
     //Collects the upload success state from the view model as a shared flow
-    val uploadSuccess by nametagDuckItTestNewPostViewModel.uploadSuccess.collectAsStateWithLifecycle(null)
+    val newPostUiState by nametagDuckItTestNewPostViewModel.newPostUIState.collectAsStateWithLifecycle()
 
     //Launched effect to handle the upload success state showing snackbars to the user
-    LaunchedEffect(uploadSuccess) {
-        when (uploadSuccess) {
-            true -> {
+    LaunchedEffect(newPostUiState) {
+        when (newPostUiState.successState) {
+            is UploadSuccessState.Success -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.new_post_success))
                     delay(500)
                     navController.popBackStack()
                 }
             }
-            false -> {
+            is UploadSuccessState.Error -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.new_post_error))
                 }
             }
-            else -> {}
+            is UploadSuccessState.Ready -> return@LaunchedEffect
         }
     }
 
     Scaffold(modifier = modifier,
         topBar = { DuckItTopToolbar(modifier, titleResourceId =  R.string.new_post_title, navController = navController, isLoggedIn = true) },
-        floatingActionButton = { SubmitPostFAB(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel, scope = scope, snackbarHostState = snackbarHostState, context = context) },
+        floatingActionButton = { SubmitPostFAB(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel, scope = scope, snackbarHostState = snackbarHostState, context = context, newPostUiState = newPostUiState) },
         snackbarHost = { SnackbarHost(modifier = modifier.testTag("newPostSnackbar"), hostState = snackbarHostState) }) { paddingValues ->
-        Column(modifier = modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(paddingValues).imePadding()) {
-            HeadlineTextEntry(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel)
-            ImageLinkTextEntry(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel)
+        Column(modifier = modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(paddingValues)
+            .imePadding()) {
+            HeadlineTextEntry(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel, newPostUiState = newPostUiState)
+            ImageLinkTextEntry(modifier = modifier, nametagDuckItTestNewPostViewModel = nametagDuckItTestNewPostViewModel, newPostUiState = newPostUiState)
         }
     }
 }
@@ -92,17 +96,19 @@ fun NametagDuckItTestNewPostScreen(modifier: Modifier, navController: NavHostCon
  * @param nametagDuckItTestNewPostViewModel ViewModel for the new post screen provided by Hilt
  */
 @Composable
-fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel) {
+fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel, newPostUiState: NewPostUiState) {
 
-    OutlinedTextField(modifier = modifier.fillMaxWidth().testTag("headlineTextField"),
-        value = nametagDuckItTestNewPostViewModel.headlineText.value,
+    OutlinedTextField(modifier = modifier
+        .fillMaxWidth()
+        .testTag("headlineTextField"),
+        value = newPostUiState.headlineText,
         onValueChange = {
             nametagDuckItTestNewPostViewModel.updateHeadlineText(it)
         },
         label = { Text(text = stringResource(id = R.string.new_post_headline_label)) },
-        isError = nametagDuckItTestNewPostViewModel.headLineError.value,
+        isError = newPostUiState.headlineError,
         trailingIcon = {
-            if (nametagDuckItTestNewPostViewModel.headlineText.value.isNotBlank()) {
+            if (newPostUiState.headlineText.isNotBlank()) {
                 IconButton(modifier = modifier.testTag("newPostHeadlineClear"), onClick = {
                     nametagDuckItTestNewPostViewModel.updateHeadlineText("")
                 }) {
@@ -115,7 +121,7 @@ fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nam
         },
         singleLine = true,
         supportingText = {
-            if (nametagDuckItTestNewPostViewModel.headLineError.value) {
+            if (newPostUiState.headlineError) {
                 Text(modifier = modifier.testTag("headlineError"), text = stringResource(id = R.string.new_post_headline_error))
             }
         })
@@ -127,13 +133,17 @@ fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nam
  * @param nametagDuckItTestNewPostViewModel ViewModel for the new post screen provided by Hilt
  */
 @Composable
-fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel) {
+fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel, newPostUiState: NewPostUiState) {
 
-    if (nametagDuckItTestNewPostViewModel.imageData.value.isNotBlank() && !nametagDuckItTestNewPostViewModel.imageError.value) {
-        Text(modifier = modifier.fillMaxWidth().testTag("newPostPreviewImageTitle"), text = stringResource(id = R.string.new_post_image_preview))
+    if (newPostUiState.imageLink.isNotBlank() && !newPostUiState.imageError) {
+        Text(modifier = modifier
+            .fillMaxWidth()
+            .testTag("newPostPreviewImageTitle"), text = stringResource(id = R.string.new_post_image_preview))
         AsyncImage(
-            modifier = modifier.fillMaxWidth().testTag("newPostPreviewImage"),
-            model = nametagDuckItTestNewPostViewModel.imageData.value,
+            modifier = modifier
+                .fillMaxWidth()
+                .testTag("newPostPreviewImage"),
+            model = newPostUiState.imageLink,
             contentDescription = stringResource(id = R.string.post_image_description),
             onError = {
                 nametagDuckItTestNewPostViewModel.imageNotFound(true)
@@ -143,15 +153,17 @@ fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Na
             })
     }
     OutlinedTextField(
-        modifier = modifier.fillMaxWidth().testTag("newPostImageTextField"),
-        value = nametagDuckItTestNewPostViewModel.imageData.value,
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag("newPostImageTextField"),
+        value = newPostUiState.imageLink,
         onValueChange = {
             nametagDuckItTestNewPostViewModel.updateImageUri(it)
         },
         label = { Text(text = stringResource(id = R.string.new_post_image_link_label)) },
-        isError = nametagDuckItTestNewPostViewModel.imageError.value,
+        isError = newPostUiState.imageError,
         trailingIcon = {
-            if (nametagDuckItTestNewPostViewModel.imageData.value.isNotBlank()) {
+            if (newPostUiState.imageLink.isNotBlank()) {
                 IconButton(modifier = modifier.testTag("newPostLinkClear"), onClick = {
                     nametagDuckItTestNewPostViewModel.updateImageUri("")
                 }) {
@@ -164,7 +176,7 @@ fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Na
         },
         singleLine = false,
         supportingText = {
-            if (nametagDuckItTestNewPostViewModel.imageError.value) {
+            if (newPostUiState.imageError) {
                 Text(modifier = modifier.testTag("newPostImageError"), text = stringResource(id = R.string.new_post_link_error))
             }
         },
@@ -178,21 +190,19 @@ fun ImageLinkTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Na
  * @param nametagDuckItTestNewPostViewModel ViewModel for the new post screen provided by Hilt
  */
 @Composable
-fun SubmitPostFAB(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel, scope: CoroutineScope, snackbarHostState: SnackbarHostState, context: Context) {
-
-    val loading by nametagDuckItTestNewPostViewModel.loading.collectAsStateWithLifecycle(false)
+fun SubmitPostFAB(modifier: Modifier, nametagDuckItTestNewPostViewModel: NametagDuckItTestNewPostViewModel, scope: CoroutineScope, snackbarHostState: SnackbarHostState, context: Context, newPostUiState: NewPostUiState) {
 
     ExtendedFloatingActionButton(modifier = modifier.testTag("newPostFAB"), onClick = {
         when {
-            !nametagDuckItTestNewPostViewModel.headLineError.value
-                    && !nametagDuckItTestNewPostViewModel.imageError.value
-                    && nametagDuckItTestNewPostViewModel.imageData.value.isBlank()
-                    && nametagDuckItTestNewPostViewModel.headlineText.value.isBlank() -> {
+            !newPostUiState.headlineError
+                    && !newPostUiState.imageError
+                    && newPostUiState.imageLink.isBlank()
+                    && newPostUiState.headlineText.isBlank() -> {
                         scope.launch {
                             snackbarHostState.showSnackbar(context.getString(R.string.new_post_submit_error))
                         }
                     }
-            loading -> {
+            newPostUiState.loading -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.new_post_loading_label))
                 }
@@ -202,7 +212,7 @@ fun SubmitPostFAB(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nametag
             }
         }
     }) {
-        if (loading) {
+        if (newPostUiState.loading) {
             CircularProgressIndicator()
         } else {
             Text(text = stringResource(id = R.string.new_post_submit_label))
