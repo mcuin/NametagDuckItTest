@@ -67,6 +67,12 @@ class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostR
         }
     }
 
+    fun updateReadyState() {
+        _newPostUIState.update { currentState ->
+            currentState.copy(successState = UploadSuccessState.Ready)
+        }
+    }
+
     /**
      * Submits the post to the server, and sets the upload success state accordingly.
      */
