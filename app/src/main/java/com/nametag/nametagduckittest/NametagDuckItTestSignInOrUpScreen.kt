@@ -60,8 +60,8 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
     //Context to get resources
     val context = LocalContext.current
     //Launched effect to collect the login success state
-    LaunchedEffect(signInOrSignUpUiState.loginCode) {
-            when (val loginState = signInOrSignUpUiState.loginCode) {
+    LaunchedEffect(signInOrSignUpUiState.loginState) {
+            when (val loginState = signInOrSignUpUiState.loginState) {
                 is LoginState.Success -> {
                     scope.launch {
                         snackbarHostState.showSnackbar(context.getString(R.string.sign_in_success))
@@ -95,8 +95,8 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
             }
         }
 
-    LaunchedEffect(signInOrSignUpUiState.signUpCode) {
-        when (val signUpState = signInOrSignUpUiState.signUpCode) {
+    LaunchedEffect(signInOrSignUpUiState.signUpState) {
+        when (val signUpState = signInOrSignUpUiState.signUpState) {
             is SignUpState.Success -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.sign_up_success))

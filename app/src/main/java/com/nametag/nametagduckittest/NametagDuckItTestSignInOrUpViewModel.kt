@@ -21,7 +21,7 @@ import javax.inject.Inject
 class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repository: NametagDuckItTestSignInOrUpRepository, private val encryptionRepository: EncryptionRepository) : ViewModel() {
 
     //Mutable state flow for the sign in or up screen state
-    private val _signInOrUpUiState = MutableStateFlow(SignInOrSignUpUiState(emailError = false, passwordError = false, loading = false, loginCode = LoginState.Ready, signUpCode =SignUpState.Ready, emailText = "", passwordText = ""))
+    private val _signInOrUpUiState = MutableStateFlow(SignInOrSignUpUiState(emailError = false, passwordError = false, loading = false, loginState = LoginState.Ready, signUpState =SignUpState.Ready, emailText = "", passwordText = ""))
     val signInOrUpUiState = _signInOrUpUiState.asStateFlow()
 
     /**
@@ -49,7 +49,7 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
      */
     fun resetLoginState() {
         _signInOrUpUiState.update { currentState ->
-            currentState.copy(loginCode = LoginState.Ready)
+            currentState.copy(loginState = LoginState.Ready)
         }
     }
 
@@ -58,7 +58,7 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
      */
     fun resetSignUpState() {
         _signInOrUpUiState.update { currentState ->
-            currentState.copy(signUpCode = SignUpState.Ready)
+            currentState.copy(signUpState = SignUpState.Ready)
         }
     }
 
@@ -76,23 +76,23 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
                 200 -> {
                     encryptionRepository.encryptData(signInResponse.body()!!.token)
                     _signInOrUpUiState.update { currentState ->
-                        currentState.copy(loginCode = LoginState.Success, loading = false)
+                        currentState.copy(loginState = LoginState.Success, loading = false)
                     }
                 }
                 403 -> {
                     _signInOrUpUiState.update { currentState ->
-                        currentState.copy(loginCode = LoginState.Error(signInResponse.code()), loading = false)
+                        currentState.copy(loginState = LoginState.Error(signInResponse.code()), loading = false)
                     }
                 }
                 404 -> {
                     _signInOrUpUiState.update { currentState ->
-                        currentState.copy(loginCode = LoginState.Error(signInResponse.code()))
+                        currentState.copy(loginState = LoginState.Error(signInResponse.code()))
                     }
                     signUp()
                 }
                 else -> {
                     _signInOrUpUiState.update { currentState ->
-                        currentState.copy(loginCode = LoginState.Error(signInResponse.code()), loading = false)
+                        currentState.copy(loginState = LoginState.Error(signInResponse.code()), loading = false)
                     }
                 }
             }
@@ -109,12 +109,12 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
             200 -> {
                 encryptionRepository.encryptData(signUpResponse.body()!!.token)
                 _signInOrUpUiState.update { currentState ->
-                    currentState.copy(signUpCode = SignUpState.Success, loading = false)
+                    currentState.copy(signUpState = SignUpState.Success, loading = false)
                 }
             }
             else -> {
                 _signInOrUpUiState.update {
-                    currentState -> currentState.copy(signUpCode = SignUpState.Error(code = signUpResponse.code()), loading = false)
+                    currentState -> currentState.copy(signUpState = SignUpState.Error(code = signUpResponse.code()), loading = false)
                 }
             }
         }
@@ -126,8 +126,8 @@ class NametagDuckItTestSignInOrUpViewModel @Inject constructor(private val repos
  * @param emailError Whether the email is invalid
  * @param passwordError Whether the password is invalid
  * @param loading Whether the sign in or up is loading
- * @param loginCode The login state
- * @param signUpCode The sign up state
+ * @param loginState The login state
+ * @param signUpState The sign up state
  * @param emailText The email text
  * @param passwordText The password text
  */
@@ -135,8 +135,8 @@ data class SignInOrSignUpUiState (
     val emailError: Boolean,
     val passwordError: Boolean,
     val loading: Boolean,
-    val loginCode: LoginState,
-    val signUpCode: SignUpState,
+    val loginState: LoginState,
+    val signUpState: SignUpState,
     val emailText: String,
     val passwordText: String
 )

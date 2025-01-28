@@ -3,9 +3,7 @@ package com.nametag.nametagduckittest.utils
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
-import okhttp3.ResponseBody
 import okhttp3.ResponseBody.Companion.toResponseBody
-import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
 
@@ -13,7 +11,7 @@ import javax.inject.Inject
  * Repository for the api calls and data transactions for the posts list screen
  * @param apiService The api service to make the api calls injected by hilt
  */
-class NametagDuckItPostsListRepository @Inject constructor(private val apiService: APIService) {
+class NametagDuckItTestPostsListRepository @Inject constructor(private val apiService: APIService) {
 
     /**
      * Get the posts from the api and emit them as a flow so that the UI can react to changes when a post is added or removed

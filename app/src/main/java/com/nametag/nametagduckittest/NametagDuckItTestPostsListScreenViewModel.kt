@@ -3,18 +3,15 @@ package com.nametag.nametagduckittest
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import coil3.network.HttpException
 import com.nametag.nametagduckittest.utils.DataStoreRepository
 import com.nametag.nametagduckittest.utils.EncryptionRepository
-import com.nametag.nametagduckittest.utils.NametagDuckItPostsListRepository
+import com.nametag.nametagduckittest.utils.NametagDuckItTestPostsListRepository
 import com.nametag.nametagduckittest.utils.Post
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.WhileSubscribed
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -25,7 +22,7 @@ import javax.inject.Inject
  * @param duckItPostsListRepository The repository to get get and send data to the api.
  */
 @HiltViewModel
-class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val duckItPostsListRepository: NametagDuckItPostsListRepository,
+class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val duckItPostsListRepository: NametagDuckItTestPostsListRepository,
                                                                     private val dataStoreRepository: DataStoreRepository,
                                                                     private val encryptionRepository: EncryptionRepository
 ) : ViewModel() {
