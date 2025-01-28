@@ -2,7 +2,6 @@ package com.nametag.nametagduckittest.utils
 
 import android.content.Context
 import android.net.ConnectivityManager
-import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 /**

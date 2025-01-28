@@ -1,7 +1,5 @@
 package com.nametag.nametagduckittest.utils
 
-import okhttp3.ResponseBody.Companion.toResponseBody
-import retrofit2.HttpException
 import retrofit2.Response
 import javax.inject.Inject
 
