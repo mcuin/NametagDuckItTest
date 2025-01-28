@@ -29,6 +29,7 @@ import javax.inject.Inject
 class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostRepository: NametagDuckItTestNewPostRepository,
                                                             private val encryptionRepository: EncryptionRepository) : ViewModel() {
 
+    //Mutable state flow for the new post UI state
     private val _newPostUIState = MutableStateFlow(NewPostUiState(headlineError = false,
         imageError = false,
         loading = false,
@@ -67,6 +68,9 @@ class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostR
         }
     }
 
+    /**
+     * Updates the upload success state to ready.
+     */
     fun updateReadyState() {
         _newPostUIState.update { currentState ->
             currentState.copy(successState = UploadSuccessState.Ready)
@@ -96,6 +100,15 @@ class NametagDuckItTestNewPostViewModel @Inject constructor(private val newPostR
     }
 }
 
+/**
+ * Data class for the new post UI state.
+ * @param headlineError The error state for the headline text field.
+ * @param imageError The error state for the image URL text field.
+ * @param loading The loading state for the submit button.
+ * @param headlineText The text for the headline text field.
+ * @param imageLink The text for the image URL text field.
+ * @param successState The success state for the submit button.
+ */
 data class NewPostUiState(val headlineError: Boolean,
                           val imageError: Boolean,
                           val loading: Boolean,
@@ -103,6 +116,9 @@ data class NewPostUiState(val headlineError: Boolean,
                           val imageLink: String,
                           val successState: UploadSuccessState)
 
+/**
+ * Sealed class for the upload success state.
+ */
 sealed class UploadSuccessState {
     object Success : UploadSuccessState()
     object Error : UploadSuccessState()

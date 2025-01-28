@@ -27,12 +27,16 @@ object RetrofitModule {
     @Provides
     fun provideBaseUrl() = "https://nametag-duckit-2.uc.r.appspot.com/"
 
+    /**
+     * Provides the network monitor for the Retrofit instance.
+     */
     @Provides
     fun provideNetworkMonitor(@ApplicationContext context: Context) = LiveNetworkMonitor(context) as NetworkMonitor
 
     /**
      * Provides the Retrofit instance.
      * @param baseUrl The base URL for the Retrofit instance.
+     * @param liveNetworkMonitor The network monitor for the Retrofit instance.
      * @return The Retrofit instance.
      */
     @Provides

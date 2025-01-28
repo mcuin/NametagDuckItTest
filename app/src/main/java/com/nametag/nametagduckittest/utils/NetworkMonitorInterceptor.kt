@@ -5,6 +5,10 @@ import okhttp3.Response
 import java.io.IOException
 import javax.inject.Inject
 
+/**
+ * Class to check if there is a network connection.
+ * @param networkMonitor The network monitor to check if there is a network connection.
+ */
 class NetworkMonitorInterceptor @Inject constructor(private val networkMonitor: NetworkMonitor) :
     Interceptor {
 
@@ -17,4 +21,7 @@ class NetworkMonitorInterceptor @Inject constructor(private val networkMonitor: 
         }
 }
 
+/**
+ * Exception thrown when there is no network connection.
+ */
 class NoNetworkException(message: String? = null) : IOException(message)
