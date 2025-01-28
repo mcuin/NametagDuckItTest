@@ -72,7 +72,7 @@ fun DuckItTopToolbar(modifier: Modifier, titleResourceId: Int, navController: Na
                     IconButton(onClick = {
                         nametagDuckItTestAppViewModel.logout()
                         if (navController.currentBackStackEntry?.destination?.route != Screens.PostsList.route) {
-                            navController.navigate(Screens.PostsList.route)
+                            navController.popBackStack()
                         }
                     }) {
                         Icon(
