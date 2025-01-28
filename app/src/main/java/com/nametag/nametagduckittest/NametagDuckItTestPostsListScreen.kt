@@ -10,17 +10,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -28,6 +31,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -50,20 +54,38 @@ fun NametagDuckItTestPostsListScreen(modifier: Modifier, navController: NavHostC
 
     //Snackbar host state for showing snackbar messages
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
     //Collects the ui state from the view model as a state
     val postsStates by nametagDuckItTestPostsListScreenViewModel.uiState.collectAsStateWithLifecycle()
 
+    LaunchedEffect(Unit) {
+        nametagDuckItTestPostsListScreenViewModel.getPosts()
+    }
+
     when (val postState = postsStates) {
-        is DuckItPostsUIState.Error -> {
+        is DuckItPostsUIState.Loading ->
             Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    textAlign = TextAlign.Center,
-                    text = "Error loading posts. Please try again later."
-                )
+                Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    CircularProgressIndicator(modifier = modifier)
+                    Text(modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.standard_padding)),
+                        textAlign = TextAlign.Center,
+                        text = stringResource(id = R.string.post_list_loading),
+                        style = MaterialTheme.typography.displaySmall)
+                }
             }
-        }
-        is DuckItPostsUIState.Loading -> CircularProgressIndicator(modifier = modifier)
         is DuckItPostsUIState.Success -> {
+            LaunchedEffect(postState.upVoteState) {
+                if (postState.upVoteState is VoteState.UpVoteError) {
+                    snackbarHostState.showSnackbar(context.getString(R.string.post_list_upvote_error))
+                    nametagDuckItTestPostsListScreenViewModel.resetVoteStates(postState.upVoteState)
+                }
+            }
+            LaunchedEffect(postState.downVoteState) {
+                if (postState.downVoteState is VoteState.DownVoteError) {
+                    snackbarHostState.showSnackbar(context.getString(R.string.post_list_downvote_error))
+                    nametagDuckItTestPostsListScreenViewModel.resetVoteStates(postState.downVoteState)
+                }
+            }
             Scaffold(topBar = { DuckItTopToolbar(modifier = modifier, titleResourceId = R.string.posts_screen_title, navController = navController, isLoggedIn = postState.isLoggedIn) },
                 floatingActionButton = { if (postState.isLoggedIn) DuckItNewPostFAB(modifier = modifier, navController = navController) },
                 snackbarHost = { SnackbarHost(snackbarHostState) }) { paddingValues ->
@@ -72,6 +94,21 @@ fun NametagDuckItTestPostsListScreen(modifier: Modifier, navController: NavHostC
                         items(postState.postsList) { post ->
                             DuckItPostCard(modifier = modifier, post = post, isLoggedIn = postState.isLoggedIn, snackbarHostState, nametagDuckItTestPostsListScreenViewModel)
                         }
+                    }
+                }
+            }
+        }
+        is DuckItPostsUIState.Error -> {
+            Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Column(modifier = modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.standard_padding)),
+                        textAlign = TextAlign.Center,
+                        text = stringResource(id = R.string.post_list_error),
+                        style = MaterialTheme.typography.displaySmall
+                    )
+                    Button(modifier = modifier.fillMaxWidth().padding(dimensionResource(R.dimen.standard_padding)), onClick = { nametagDuckItTestPostsListScreenViewModel.getPosts() }) {
+                        Text(text = stringResource(id = R.string.post_list_error_retry))
                     }
                 }
             }
@@ -90,13 +127,15 @@ fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbar
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    Card(modifier = modifier.fillMaxWidth().padding(8.dp),
+    Card(modifier = modifier.fillMaxWidth().padding(start = dimensionResource(R.dimen.standard_padding), end = dimensionResource(R.dimen.standard_padding), top = dimensionResource(R.dimen.small_padding), bottom = dimensionResource(R.dimen.small_padding)),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)) {
-        Column(modifier = modifier.padding(8.dp)) {
-            Text(text = post.headline)
-            AsyncImage(model = post.image, contentDescription = stringResource(id = R.string.post_image_description))
+        Column(modifier = modifier.fillMaxWidth()) {
+            Text(modifier = modifier.fillMaxWidth().padding(start = dimensionResource(R.dimen.standard_padding), end = dimensionResource(R.dimen.standard_padding), top = dimensionResource(R.dimen.small_padding)),
+                text = post.headline,
+                style = MaterialTheme.typography.titleLarge)
+            AsyncImage(modifier = modifier.fillMaxWidth().padding(top = dimensionResource(R.dimen.small_padding)), model = post.image, contentDescription = stringResource(id = R.string.post_image_description))
             Row {
-                IconButton(modifier = modifier, onClick = {
+                IconButton(modifier = modifier.padding(dimensionResource(R.dimen.tiny_padding)), onClick = {
                     if (isLoggedIn) {
                         nametagDuckItTestPostsListScreenViewModel.upVotePost(post.id)
                     } else {
@@ -107,8 +146,10 @@ fun DuckItPostCard(modifier: Modifier, post: Post, isLoggedIn: Boolean, snackbar
                 }) {
                     Icon(painter = painterResource(id = R.drawable.ic_upvote), contentDescription = stringResource(id = R.string.upvote_description))
                 }
-                Text(modifier = modifier.padding(8.dp).align(Alignment.CenterVertically), text = post.upvotes.toString())
-                IconButton(modifier = modifier, onClick = {
+                Text(modifier = modifier.padding(dimensionResource(R.dimen.tiny_padding)).align(Alignment.CenterVertically),
+                    text = post.upvotes.toString(),
+                    style = MaterialTheme.typography.titleMedium)
+                IconButton(modifier = modifier.padding(dimensionResource(R.dimen.tiny_padding)), onClick = {
                     if (isLoggedIn) {
                         nametagDuckItTestPostsListScreenViewModel.downVotePost(post.id)
                     } else {

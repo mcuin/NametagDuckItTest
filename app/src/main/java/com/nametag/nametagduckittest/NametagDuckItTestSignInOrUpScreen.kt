@@ -12,6 +12,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -147,12 +149,13 @@ fun EmailTextField(modifier: Modifier,
                    nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel,
                    signInOrSignUpUiStateEmailText: String, signInOrSignUpUiStateEmailError: Boolean) {
 
-    OutlinedTextField(modifier = modifier.testTag("emailTextField").fillMaxWidth(),
+    OutlinedTextField(modifier = modifier.fillMaxWidth()
+        .padding(start = dimensionResource(R.dimen.standard_padding), end = dimensionResource(R.dimen.standard_padding), top = dimensionResource(R.dimen.small_padding), bottom = dimensionResource(R.dimen.small_padding)).testTag("emailTextField"),
         label = { Text(text = stringResource(id = R.string.email_label)) },
         value = signInOrSignUpUiStateEmailText,
         onValueChange = nametagDuckItTestSignInOrUpViewModel::updateEmailText,
         isError = signInOrSignUpUiStateEmailError,
-        supportingText = { if (signInOrSignUpUiStateEmailError) Text(modifier = modifier.testTag("emailErrorText"), text = stringResource(id = R.string.email_error)) },
+        supportingText = { if (signInOrSignUpUiStateEmailError) Text(modifier = modifier.testTag("emailErrorText"), text = stringResource(id = R.string.email_error), style = MaterialTheme.typography.bodyMedium) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         trailingIcon = {
@@ -177,13 +180,13 @@ fun PasswordTextField(modifier: Modifier,
 
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
-    OutlinedTextField(modifier = modifier.testTag("passwordTextField").fillMaxWidth(),
+    OutlinedTextField(modifier = modifier.fillMaxWidth().padding(start = dimensionResource(R.dimen.standard_padding), end = dimensionResource(R.dimen.standard_padding), top = dimensionResource(R.dimen.small_padding), bottom = dimensionResource(R.dimen.small_padding)).testTag("passwordTextField"),
         label = { Text(text = stringResource(id = R.string.password_label)) },
         value = signInOrSignUpUiStatePasswordText,
         onValueChange = nametagDuckItTestSignInOrUpViewModel::updatePasswordText,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
         isError = signInOrSignUpUiStatePasswordError,
-        supportingText = { if (signInOrSignUpUiStatePasswordError) Text(modifier = modifier.testTag("passwordErrorText"), text = stringResource(id = R.string.password_error)) },
+        supportingText = { if (signInOrSignUpUiStatePasswordError) Text(modifier = modifier.testTag("passwordErrorText"), text = stringResource(id = R.string.password_error), style = MaterialTheme.typography.bodyMedium) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         trailingIcon = {
@@ -229,10 +232,11 @@ fun SignInOrUpFAB(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: Name
     }, content = {
         if (!signInOrSignUpUiStateLoading) {
             Icon(
+                modifier = modifier.padding(end = dimensionResource(R.dimen.tiny_padding)),
                 painter = painterResource(id = R.drawable.ic_login),
                 contentDescription = stringResource(id = R.string.login_description)
             )
-            Text(text = stringResource(id = R.string.login_description))
+            Text(modifier = modifier.padding(start = dimensionResource(R.dimen.tiny_padding)), text = stringResource(id = R.string.login_description))
         } else {
             CircularProgressIndicator(modifier = modifier.testTag("signInOrUploadingIndicator"))
         }

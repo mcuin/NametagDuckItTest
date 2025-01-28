@@ -20,8 +20,8 @@
     <string name="sign_up_success">Account successfully created</string>
     <string name="unknown_error">An unknown error occurred. Please try again later.</string>
     <string name="new_post_fab_description">Create new post</string>
-    <string name="login_required_upvote">Logging in is required to upvote posts</string>
-    <string name="login_required_downvote">Logging in is required to downvote posts</string>
+    <string name="login_required_upvote">Logging in is required to upvote ducks</string>
+    <string name="login_required_downvote">Logging in is required to downvote ducks</string>
     <string name="new_post_headline_label">Headline your duck</string>
     <string name="new_post_image_link_label">Link your duck</string>
     <string name="new_post_submit_label">Submit your duck</string>
@@ -34,4 +34,9 @@
     <string name="sign_in_or_up_loading">Attempting to sign in or up</string>
     <string name="new_post_submit_error">Invalid headline or image link</string>
     <string name="new_post_loading_label">Attempting to post your duck</string>
+    <string name="post_list_upvote_error">Unable to upvote this duck. Try again later.</string>
+    <string name="post_list_downvote_error">Unable to downvote this duck. Try again later.</string>
+    <string name="post_list_error_retry">Try Reloading Your Ducks</string>
+    <string name="post_list_loading">Loading your ducks</string>
+    <string name="post_list_error">Error loading your ducks</string>"
 </resources>

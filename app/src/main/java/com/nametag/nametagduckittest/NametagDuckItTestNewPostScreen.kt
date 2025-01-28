@@ -15,6 +15,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -28,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -109,6 +111,7 @@ fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nam
 
     OutlinedTextField(modifier = modifier
         .fillMaxWidth()
+        .padding(start = dimensionResource(R.dimen.standard_padding), end = dimensionResource(R.dimen.standard_padding), top = dimensionResource(R.dimen.standard_padding))
         .testTag("headlineTextField"),
         value = newPostUiStateHeadline,
         onValueChange = {
@@ -131,7 +134,8 @@ fun HeadlineTextEntry(modifier: Modifier, nametagDuckItTestNewPostViewModel: Nam
         singleLine = true,
         supportingText = {
             if (newPostUiStateHeadlineError) {
-                Text(modifier = modifier.testTag("headlineError"), text = stringResource(id = R.string.new_post_headline_error))
+                Text(modifier = modifier.testTag("headlineError"), text = stringResource(id = R.string.new_post_headline_error),
+                    style = MaterialTheme.typography.bodyMedium)
             }
         })
 }
@@ -149,10 +153,13 @@ fun ImageLinkTextEntry(modifier: Modifier,
     if (newPostUiStateImageLink.isNotBlank() && !newPostUIStateImageLinkError) {
         Text(modifier = modifier
             .fillMaxWidth()
-            .testTag("newPostPreviewImageTitle"), text = stringResource(id = R.string.new_post_image_preview))
+            .padding(start = dimensionResource(R.dimen.standard_padding), end = dimensionResource(R.dimen.standard_padding), top = dimensionResource(R.dimen.small_padding))
+            .testTag("newPostPreviewImageTitle"), text = stringResource(id = R.string.new_post_image_preview),
+            style = MaterialTheme.typography.titleMedium)
         AsyncImage(
             modifier = modifier
                 .fillMaxWidth()
+                .padding(top = dimensionResource(R.dimen.small_padding))
                 .testTag("newPostPreviewImage"),
             model = newPostUiStateImageLink,
             contentDescription = stringResource(id = R.string.post_image_description),
@@ -166,6 +173,7 @@ fun ImageLinkTextEntry(modifier: Modifier,
     OutlinedTextField(
         modifier = modifier
             .fillMaxWidth()
+            .padding(start = dimensionResource(R.dimen.standard_padding), end = dimensionResource(R.dimen.standard_padding), top = dimensionResource(R.dimen.small_padding))
             .testTag("newPostImageTextField"),
         value = newPostUiStateImageLink,
         onValueChange = {
@@ -188,7 +196,8 @@ fun ImageLinkTextEntry(modifier: Modifier,
         singleLine = false,
         supportingText = {
             if (newPostUIStateImageLinkError) {
-                Text(modifier = modifier.testTag("newPostImageError"), text = stringResource(id = R.string.new_post_link_error))
+                Text(modifier = modifier.testTag("newPostImageError"), text = stringResource(id = R.string.new_post_link_error),
+                    style = MaterialTheme.typography.bodyMedium)
             }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done)

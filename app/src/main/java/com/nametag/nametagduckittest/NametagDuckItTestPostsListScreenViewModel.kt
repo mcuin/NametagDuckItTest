@@ -35,24 +35,22 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
     val uiState = _uiState.asStateFlow()
 
     //Flow for checking if the user is logged in or not by checking for token in data store
-    private val isLoggedIn = dataStoreRepository.isLoggedInFlow().stateIn(viewModelScope, SharingStarted.Eagerly, false)
+    private val isLoggedIn = dataStoreRepository.isLoggedInFlow()
 
-    //Flow for getting the posts from the api and updating the state of the posts list screen
-    private val posts = duckItPostsListRepository.getPosts().map { response ->
-        when (response.code()) {
-            200 -> {
-                response.body()!!.Posts
-            }
-            else -> emptyList()
+    /**
+     * Function to get the posts from the api.
+     */
+    fun getPosts() {
+        viewModelScope.launch {
+            val decryptedToken = encryptionRepository.decryptData()
+            duckItPostsListRepository.getPosts(decryptedToken).combine(isLoggedIn) { postsResponse, isLoggedIn ->
+                when (postsResponse.code()) {
+                    200 -> _uiState.value = DuckItPostsUIState.Success(postsResponse.body()!!.Posts, isLoggedIn)
+                    else -> _uiState.value = DuckItPostsUIState.Error
+                }
+            }.stateIn(viewModelScope, SharingStarted.Eagerly, DuckItPostsUIState.Loading)
         }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), emptyList())
-
-    private val states = posts.combine(isLoggedIn) { posts, isLoggedIn ->
-        when {
-            posts.isEmpty() -> _uiState.value = DuckItPostsUIState.Error
-            else -> _uiState.value = DuckItPostsUIState.Success(posts, isLoggedIn)
-        }
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, DuckItPostsUIState.Loading)
+    }
 
     /**
      * Function to upvote a post.
@@ -75,7 +73,11 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
                                     })
                             }
                         }
-                        else -> {}
+                        else -> {
+                            _uiState.update { currentState ->
+                                (currentState as DuckItPostsUIState.Success).copy(upVoteState = VoteState.UpVoteError)
+                            }
+                        }
                     }
                 }
             }
@@ -91,7 +93,6 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
             viewModelScope.launch {
                 val decryptedToken = encryptionRepository.decryptData()
                 if (decryptedToken != null) {
-                    try {
                         val response = duckItPostsListRepository.downVotePost(decryptedToken, postId)
                         when (response.code()) {
                             200 -> {
@@ -104,14 +105,25 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
                                         })
                                 }
                             }
-                            else -> {}
+                            else -> {
+                                _uiState.update { currentState ->
+                                    (currentState as DuckItPostsUIState.Success).copy(downVoteState = VoteState.DownVoteError)
+                                }
+                            }
                         }
-                    } catch (e: HttpException) {
-                        _uiState.update {
-                            DuckItPostsUIState.Error
-                        }
-                    }
                 }
+            }
+        }
+    }
+
+    fun resetVoteStates(voteState: VoteState) {
+        if (voteState is VoteState.UpVoteError) {
+            _uiState.update { currentState ->
+                (currentState as DuckItPostsUIState.Success).copy(upVoteState = VoteState.Ready)
+            }
+        } else {
+            _uiState.update { currentState ->
+                (currentState as DuckItPostsUIState.Success).copy(downVoteState = VoteState.Ready)
             }
         }
     }
@@ -122,7 +134,13 @@ class NametagDuckItTestPostsListScreenViewModel @Inject constructor(private val 
  */
 @Immutable
 sealed class DuckItPostsUIState {
-    data class Success(val postsList: List<Post>, val isLoggedIn: Boolean) : DuckItPostsUIState()
+    data class Success(val postsList: List<Post>, val isLoggedIn: Boolean, val upVoteState: VoteState = VoteState.Ready, val downVoteState: VoteState = VoteState.Ready) : DuckItPostsUIState()
     data object Error : DuckItPostsUIState()
     data object Loading : DuckItPostsUIState()
+}
+
+sealed class VoteState {
+    data object UpVoteError : VoteState()
+    data object DownVoteError : VoteState()
+    data object Ready : VoteState()
 }
