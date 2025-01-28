@@ -2,6 +2,8 @@ package com.nametag.nametagduckittest.utils
 
 import okhttp3.Interceptor
 import okhttp3.Response
+import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import java.io.IOException
 import javax.inject.Inject
 
@@ -24,4 +26,4 @@ class NetworkMonitorInterceptor @Inject constructor(private val networkMonitor: 
 /**
  * Exception thrown when there is no network connection.
  */
-class NoNetworkException(message: String? = null) : IOException(message)
+class NoNetworkException(val code : Int = 500, val response: ResponseBody = "".toResponseBody(null), message: String? = null) : IOException(message)

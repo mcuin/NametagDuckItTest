@@ -19,8 +19,8 @@ class NametagDuckItTestNewPostRepository @Inject constructor(private val apiServ
     suspend fun createPost(token: String, newPostRequest: NewPostRequest): Response<NewPostResponse> {
         return try {
             apiService.createPost(token = "Bearer $token", newPostRequest)
-        } catch (e: Exception) {
-            Response.error(500, "".toResponseBody(null))
+        } catch (e: NoNetworkException) {
+            Response.error(e.code, e.response)
         }
     }
 }

@@ -18,8 +18,8 @@ class NametagDuckItTestSignInOrUpRepository @Inject constructor(private val apiS
      */
     suspend fun signIn(signInRequest: SignInRequest): Response<SignInOrUpResponse> = try {
         apiService.signIn(signInRequest)
-    } catch (e: HttpException) {
-        Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+    } catch (e: NoNetworkException) {
+        Response.error(e.code, e.response)
     }
 
     /**
@@ -29,7 +29,7 @@ class NametagDuckItTestSignInOrUpRepository @Inject constructor(private val apiS
      */
     suspend fun signUp(signUpRequest: SignUpRequest): Response<SignInOrUpResponse> = try {
         apiService.signUp(signUpRequest)
-    } catch (e: HttpException) {
-        Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+    } catch (e: NoNetworkException) {
+        Response.error(e.code, e.response)
     }
 }

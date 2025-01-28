@@ -19,8 +19,8 @@ class NametagDuckItPostsListRepository @Inject constructor(private val apiServic
      * Get the posts from the api and emit them as a flow so that the UI can react to changes when a post is added or removed
      * @return Flow<Response<PostsResponse>> The flow of posts
      */
-    fun getPosts(): Flow<Response<PostsResponse>> = flow {
-        emit(apiService.getPosts(token = null))
+    fun getPosts(token: String?): Flow<Response<PostsResponse>> = flow {
+        emit(apiService.getPosts(token = token))
     }.catch {
         emit(Response.error(500, "".toResponseBody(null)))
     }
@@ -34,8 +34,8 @@ class NametagDuckItPostsListRepository @Inject constructor(private val apiServic
     suspend fun upVotePost(token : String, postId: String): Response<VotesResponse> {
         return try {
             apiService.upvotePost(token = "Bearer \"$token\"", postId = postId)
-        } catch (e: HttpException) {
-            Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+        } catch (e: NoNetworkException) {
+            Response.error(e.code, e.response)
         }
     }
 
@@ -48,8 +48,8 @@ class NametagDuckItPostsListRepository @Inject constructor(private val apiServic
     suspend fun downVotePost(token: String, postId: String): Response<VotesResponse> {
         return try {
             apiService.downvotePost(token = "Bearer \"$token\"", postId = postId)
-        } catch (e: HttpException) {
-            Response.error(e.code(), e.response()?.errorBody() ?: "".toResponseBody(null))
+        } catch (e: NoNetworkException) {
+            Response.error(e.code, e.response)
         }
     }
 }
