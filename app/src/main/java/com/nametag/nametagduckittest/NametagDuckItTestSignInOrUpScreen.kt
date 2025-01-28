@@ -37,6 +37,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -53,60 +54,85 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
     //Snackbar host state for the snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     //Flow for the login success state
-    val uiState by nametagDuckItTestSignInOrUpViewModel.uiState.collectAsStateWithLifecycle()
+    val signInOrSignUpUiState by nametagDuckItTestSignInOrUpViewModel.signInOrUpUiState.collectAsStateWithLifecycle()
     //Context to get resources
     val context = LocalContext.current
     //Launched effect to collect the login success state
-    LaunchedEffect(uiState.loginCode) {
-            when (uiState.loginCode) {
-                200 -> {
+    LaunchedEffect(signInOrSignUpUiState.loginCode) {
+            when (val loginState = signInOrSignUpUiState.loginCode) {
+                is LoginState.Success -> {
                     scope.launch {
                         snackbarHostState.showSnackbar(context.getString(R.string.sign_in_success))
+                        delay(100)
                     }
                     navHostController.popBackStack()
                 }
 
-                403 -> {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(context.getString(R.string.invalid_login))
-                    }
-                }
+                is LoginState.Error -> {
+                    when (loginState.code) {
+                        403 -> {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.invalid_login))
+                            }
+                        }
 
-                404 -> {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(context.getString(R.string.account_not_found))
+                        404 -> {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.account_not_found))
+                            }
+                        }
+                        else -> {
+                            scope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.unknown_error))
+                            }
+                        }
                     }
+                    nametagDuckItTestSignInOrUpViewModel.resetLoginState()
                 }
-
-                -1 -> {}
-                else -> {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(context.getString(R.string.unknown_error))
-                    }
-                }
+                is LoginState.Ready -> return@LaunchedEffect
             }
         }
 
-    LaunchedEffect(uiState.signUpCode) {
-        when (uiState.signUpCode) {
-            200 -> {
+    LaunchedEffect(signInOrSignUpUiState.signUpCode) {
+        when (val signUpState = signInOrSignUpUiState.signUpCode) {
+            is SignUpState.Success -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.sign_up_success))
+                    delay(100)
                 }
                 navHostController.popBackStack()
             }
-
-            409 -> { /* TODO When an actual sign up screen would be implemented this would be needed to handle */ }
+            is SignUpState.Error -> {
+                when (signUpState.code) {
+                    409 -> { /* TODO When an actual sign up screen would be implemented this would be needed to handle */ }
+                    else -> {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(context.getString(R.string.unknown_error))
+                        }
+                    }
+                }
+                nametagDuckItTestSignInOrUpViewModel.resetSignUpState()
+            }
+            is SignUpState.Ready -> return@LaunchedEffect
         }
     }
 
     Scaffold(modifier = modifier.testTag("signInOrUpScreen"), topBar = { DuckItTopToolbar(modifier = modifier, titleResourceId = R.string.login_description, navController = navHostController, isLoggedIn = false) },
-        floatingActionButton = { SignInOrUpFAB(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel, scope = scope, snackbarHostState = snackbarHostState, context = context, uiState = uiState) },
+        floatingActionButton = { SignInOrUpFAB(modifier = modifier,
+            nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel,
+            scope = scope, snackbarHostState = snackbarHostState, context = context,
+            signInOrSignUpUiStateEmailText = signInOrSignUpUiState.emailText,
+            signInOrSignUpUiStatePasswordText = signInOrSignUpUiState.passwordText,
+            signInOrSignUpUiStateEmailError = signInOrSignUpUiState.emailError,
+            signInOrSignUpUiStatePasswordError = signInOrSignUpUiState.passwordError,
+            signInOrSignUpUiStateLoading = signInOrSignUpUiState.loading) },
         snackbarHost = { SnackbarHost(modifier = modifier.testTag("signInOrUpSnackbar"), hostState = snackbarHostState) }) { paddingValues ->
 
         Column(modifier = modifier.fillMaxSize().padding(paddingValues)) {
-            EmailTextField(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel, uiState = uiState)
-            PasswordTextField(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel, uiState = uiState)
+            EmailTextField(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel,
+                signInOrSignUpUiStateEmailText = signInOrSignUpUiState.emailText, signInOrSignUpUiStateEmailError = signInOrSignUpUiState.emailError)
+            PasswordTextField(modifier = modifier, nametagDuckItTestSignInOrUpViewModel = nametagDuckItTestSignInOrUpViewModel,
+                signInOrSignUpUiStatePasswordText = signInOrSignUpUiState.passwordText, signInOrSignUpUiStatePasswordError = signInOrSignUpUiState.passwordError)
         }
     }
 }
@@ -117,18 +143,20 @@ fun NametagDuckItSignInOrUpScreen(modifier: Modifier, navHostController: NavHost
  * @param nametagDuckItTestSignInOrUpViewModel The view model for the sign in or up screen
  */
 @Composable
-fun EmailTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel, uiState: SignInOrSignUpUiState) {
+fun EmailTextField(modifier: Modifier,
+                   nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel,
+                   signInOrSignUpUiStateEmailText: String, signInOrSignUpUiStateEmailError: Boolean) {
 
     OutlinedTextField(modifier = modifier.testTag("emailTextField").fillMaxWidth(),
         label = { Text(text = stringResource(id = R.string.email_label)) },
-        value = uiState.emailText,
+        value = signInOrSignUpUiStateEmailText,
         onValueChange = nametagDuckItTestSignInOrUpViewModel::updateEmailText,
-        isError = uiState.emailError,
-        supportingText = { if (uiState.emailError) Text(modifier = modifier.testTag("emailErrorText"), text = stringResource(id = R.string.email_error)) },
+        isError = signInOrSignUpUiStateEmailError,
+        supportingText = { if (signInOrSignUpUiStateEmailError) Text(modifier = modifier.testTag("emailErrorText"), text = stringResource(id = R.string.email_error)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
         trailingIcon = {
-            if (uiState.emailText.isNotBlank()) {
+            if (signInOrSignUpUiStateEmailText.isNotBlank()) {
                 IconButton(modifier = modifier.testTag("emailClear"), onClick = { nametagDuckItTestSignInOrUpViewModel.updateEmailText("") }) {
                     Icon(imageVector = Icons.Default.Clear, contentDescription = stringResource(id = R.string.back_description))
                 }
@@ -143,17 +171,19 @@ fun EmailTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: Nam
  * @param nametagDuckItTestSignInOrUpViewModel The view model for the sign in or up screen
  */
 @Composable
-fun PasswordTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel, uiState: SignInOrSignUpUiState) {
+fun PasswordTextField(modifier: Modifier,
+                      nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel,
+                      signInOrSignUpUiStatePasswordText: String, signInOrSignUpUiStatePasswordError: Boolean) {
 
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
 
     OutlinedTextField(modifier = modifier.testTag("passwordTextField").fillMaxWidth(),
         label = { Text(text = stringResource(id = R.string.password_label)) },
-        value = uiState.passwordText,
+        value = signInOrSignUpUiStatePasswordText,
         onValueChange = nametagDuckItTestSignInOrUpViewModel::updatePasswordText,
         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-        isError = uiState.passwordError,
-        supportingText = { if (uiState.passwordError) Text(modifier = modifier.testTag("passwordErrorText"), text = stringResource(id = R.string.password_error)) },
+        isError = signInOrSignUpUiStatePasswordError,
+        supportingText = { if (signInOrSignUpUiStatePasswordError) Text(modifier = modifier.testTag("passwordErrorText"), text = stringResource(id = R.string.password_error)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
         trailingIcon = {
@@ -172,19 +202,22 @@ fun PasswordTextField(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: 
  */
 @Composable
 fun SignInOrUpFAB(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: NametagDuckItTestSignInOrUpViewModel,
-                  scope: CoroutineScope, snackbarHostState: SnackbarHostState, context: Context, uiState: SignInOrSignUpUiState) {
+                  scope: CoroutineScope, snackbarHostState: SnackbarHostState, context: Context,
+                  signInOrSignUpUiStateEmailText: String, signInOrSignUpUiStatePasswordText: String,
+                  signInOrSignUpUiStateEmailError: Boolean, signInOrSignUpUiStatePasswordError: Boolean,
+                  signInOrSignUpUiStateLoading: Boolean) {
 
     ExtendedFloatingActionButton(modifier = modifier.testTag("signInOrUpFAB"), onClick = {
         when {
-            uiState.emailText.isBlank() ||
-                    uiState.passwordText.isBlank() ||
-                    uiState.passwordError ||
-                    uiState.emailError -> {
+            signInOrSignUpUiStateEmailText.isBlank() ||
+                    signInOrSignUpUiStatePasswordText.isBlank() ||
+                    signInOrSignUpUiStatePasswordError ||
+                    signInOrSignUpUiStateEmailError -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.invalid_login))
                 }
             }
-            uiState.loading -> {
+            signInOrSignUpUiStateLoading -> {
                 scope.launch {
                     snackbarHostState.showSnackbar(context.getString(R.string.sign_in_or_up_loading))
                 }
@@ -194,7 +227,7 @@ fun SignInOrUpFAB(modifier: Modifier, nametagDuckItTestSignInOrUpViewModel: Name
             }
         }
     }, content = {
-        if (!uiState.loading) {
+        if (!signInOrSignUpUiStateLoading) {
             Icon(
                 painter = painterResource(id = R.drawable.ic_login),
                 contentDescription = stringResource(id = R.string.login_description)
